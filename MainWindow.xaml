@@ -1,0 +1,529 @@
+﻿<Window x:Class="GitHubContributionWidget.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GitHubContributionWidget"
+        mc:Ignorable="d"
+        Title="GitHub Contributions" 
+        Height="300" Width="900"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        Background="Transparent"
+        AllowsTransparency="True"
+        Loaded="Window_Loaded">
+
+    <Window.Resources>
+        <!-- Color Picker Popup Style -->
+        <Style x:Key="ColorPickerButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="0"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#40FFFFFF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Border BorderBrush="#50FFFFFF" 
+            BorderThickness="1" 
+            CornerRadius="8">
+
+        <Grid Margin="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Custom Title Bar -->
+            <Grid Grid.Row="0" Background="#20000000" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="GitHub Contributions Widget" 
+                           Grid.Column="0"
+                           Foreground="#FFFFFF"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           Margin="15,0,0,0"/>
+
+                <StackPanel Grid.Column="1" 
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right">
+
+                    <!-- Theme Customization Button -->
+                    <ToggleButton x:Name="ThemeButton"
+                                  Width="35" 
+                                  Height="35"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  Cursor="Hand"
+                                  ToolTip="Customize colors"
+                                  Checked="ThemeButton_Checked"
+                                  Unchecked="ThemeButton_Unchecked">
+                        <ToggleButton.Style>
+                            <Style TargetType="ToggleButton">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    BorderThickness="0"
+                                                    CornerRadius="4">
+                                                <Viewbox Width="16" Height="16" 
+                                                         HorizontalAlignment="Center" 
+                                                         VerticalAlignment="Center">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path x:Name="ThemeIcon"
+                                                              Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6V6z"
+                                                              Fill="#FFFFFF"
+                                                              Opacity="0.7"/>
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#401f6feb"/>
+                                                </Trigger>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="ThemeIcon" Property="Opacity" Value="1"/>
+                                                    <Setter Property="Background" Value="#601f6feb"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ToggleButton.Style>
+                    </ToggleButton>
+
+                    <!-- Pin Button with SVG Icon -->
+                    <ToggleButton x:Name="PinButton"
+                                  Width="35" 
+                                  Height="35"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  Cursor="Hand"
+                                  ToolTip="Pin on top (disables close)"
+                                  Checked="PinButton_Checked"
+                                  Unchecked="PinButton_Unchecked">
+                        <ToggleButton.Style>
+                            <Style TargetType="ToggleButton">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    BorderThickness="0"
+                                                    CornerRadius="4">
+                                                <Viewbox Width="16" Height="16" 
+                                                         HorizontalAlignment="Center" 
+                                                         VerticalAlignment="Center">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path x:Name="PinIcon"
+                                                              Data="M9.13203 7.79666L3.01631 9.46458C2.27555 9.66661 2.02939 10.5935 2.57232 11.1364L7.01071 15.5748L2.06096 20.5246C1.67044 20.9151 1.67044 21.5483 2.06096 21.9388C2.45148 22.3293 3.08465 22.3293 3.47517 21.9388L8.42492 16.989L12.8633 21.4274C13.4062 21.9704 14.3331 21.7242 14.5352 20.9834L16.2031 14.8677L21.8599 9.21087L22.2135 9.56442C22.4088 9.75969 22.7253 9.75969 22.9206 9.56442L23.6277 8.85732C23.823 8.66205 23.823 8.34547 23.6277 8.15021L15.8495 0.372033C15.6543 0.17677 15.3377 0.17677 15.1424 0.372032L14.4353 1.07914C14.2401 1.2744 14.2401 1.59098 14.4353 1.78625L14.7889 2.1398L9.13203 7.79666ZM14.2736 14.3415C14.3651 14.0057 14.5428 13.6996 14.7889 13.4535L20.4457 7.79666L16.2031 3.55401L10.5462 9.21087C10.3001 9.45698 9.99405 9.63461 9.65826 9.72618L5.20501 10.9407L13.059 18.7947L14.2736 14.3415Z"
+                                                              Fill="#FFFFFF"
+                                                              Opacity="0.7"/>
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#401f6feb"/>
+                                                </Trigger>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="PinIcon" Property="Opacity" Value="1"/>
+                                                    <Setter Property="Background" Value="#601f6feb"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ToggleButton.Style>
+                    </ToggleButton>
+
+                    <!-- Close Button -->
+                    <Button x:Name="CloseButton"
+                            Content="✕" 
+                            Width="35" 
+                            Height="35"
+                            FontSize="16"
+                            Background="Transparent"
+                            Foreground="#FFFFFF"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Click="CloseButton_Click"
+                            ToolTip="Close">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    BorderThickness="0"
+                                                    CornerRadius="4">
+                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Foreground" Value="#60FFFFFF"/>
+                                        <Setter Property="Opacity" Value="0.4"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#80da3633"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Theme Customization Popup -->
+            <Border x:Name="ThemePopup"
+                    Grid.Row="1"
+                    Grid.RowSpan="5"
+                    Background="#E0000000"
+                    CornerRadius="8"
+                    Margin="20,10,20,20"
+                    Padding="20"
+                    Visibility="Collapsed"
+                    Panel.ZIndex="1000">
+                <StackPanel>
+                    <TextBlock Text="Customize Contribution Colors" 
+                               Foreground="#FFFFFF"
+                               FontSize="14"
+                               FontWeight="Bold"
+                               Margin="0,0,0,15"/>
+
+                    <!-- Color Level 0 (No contributions) -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="No contributions:" 
+                                   Foreground="#B0FFFFFF"
+                                   Width="120"
+                                   VerticalAlignment="Center"/>
+                        <Border x:Name="ColorPreview0"
+                                Width="30" Height="30" 
+                                Background="#161b22"
+                                CornerRadius="4"
+                                BorderBrush="#60FFFFFF"
+                                BorderThickness="1"
+                                Margin="0,0,10,0"/>
+                        <ComboBox x:Name="ColorPicker0" 
+                                  Width="150"
+                                  SelectedIndex="0"
+                                  SelectionChanged="ColorPicker_SelectionChanged">
+                            <ComboBoxItem Content="Dark Gray" Tag="#161b22"/>
+                            <ComboBoxItem Content="Light Gray" Tag="#30363d"/>
+                            <ComboBoxItem Content="Black" Tag="#000000"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Color Level 1 (Low) -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="Low (1-3):" 
+                                   Foreground="#B0FFFFFF"
+                                   Width="120"
+                                   VerticalAlignment="Center"/>
+                        <Border x:Name="ColorPreview1"
+                                Width="30" Height="30" 
+                                Background="#0e4429"
+                                CornerRadius="4"
+                                BorderBrush="#60FFFFFF"
+                                BorderThickness="1"
+                                Margin="0,0,10,0"/>
+                        <ComboBox x:Name="ColorPicker1" 
+                                  Width="150"
+                                  SelectedIndex="0"
+                                  SelectionChanged="ColorPicker_SelectionChanged">
+                            <ComboBoxItem Content="Dark Green" Tag="#0e4429"/>
+                            <ComboBoxItem Content="Dark Blue" Tag="#0d4a6e"/>
+                            <ComboBoxItem Content="Dark Purple" Tag="#3d1f4d"/>
+                            <ComboBoxItem Content="Dark Red" Tag="#4d1f1f"/>
+                            <ComboBoxItem Content="Dark Orange" Tag="#4d2f1f"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Color Level 2 (Medium-Low) -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="Medium-Low (4-6):" 
+                                   Foreground="#B0FFFFFF"
+                                   Width="120"
+                                   VerticalAlignment="Center"/>
+                        <Border x:Name="ColorPreview2"
+                                Width="30" Height="30" 
+                                Background="#006d32"
+                                CornerRadius="4"
+                                BorderBrush="#60FFFFFF"
+                                BorderThickness="1"
+                                Margin="0,0,10,0"/>
+                        <ComboBox x:Name="ColorPicker2" 
+                                  Width="150"
+                                  SelectedIndex="0"
+                                  SelectionChanged="ColorPicker_SelectionChanged">
+                            <ComboBoxItem Content="Green" Tag="#006d32"/>
+                            <ComboBoxItem Content="Blue" Tag="#0969da"/>
+                            <ComboBoxItem Content="Purple" Tag="#8250df"/>
+                            <ComboBoxItem Content="Red" Tag="#cf222e"/>
+                            <ComboBoxItem Content="Orange" Tag="#bc4c00"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Color Level 3 (Medium-High) -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="Medium-High (7-9):" 
+                                   Foreground="#B0FFFFFF"
+                                   Width="120"
+                                   VerticalAlignment="Center"/>
+                        <Border x:Name="ColorPreview3"
+                                Width="30" Height="30" 
+                                Background="#26a641"
+                                CornerRadius="4"
+                                BorderBrush="#60FFFFFF"
+                                BorderThickness="1"
+                                Margin="0,0,10,0"/>
+                        <ComboBox x:Name="ColorPicker3" 
+                                  Width="150"
+                                  SelectedIndex="0"
+                                  SelectionChanged="ColorPicker_SelectionChanged">
+                            <ComboBoxItem Content="Bright Green" Tag="#26a641"/>
+                            <ComboBoxItem Content="Bright Blue" Tag="#1f6feb"/>
+                            <ComboBoxItem Content="Bright Purple" Tag="#a371f7"/>
+                            <ComboBoxItem Content="Bright Red" Tag="#f85149"/>
+                            <ComboBoxItem Content="Bright Orange" Tag="#fb8500"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Color Level 4 (High) -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="High (10+):" 
+                                   Foreground="#B0FFFFFF"
+                                   Width="120"
+                                   VerticalAlignment="Center"/>
+                        <Border x:Name="ColorPreview4"
+                                Width="30" Height="30" 
+                                Background="#39d353"
+                                CornerRadius="4"
+                                BorderBrush="#60FFFFFF"
+                                BorderThickness="1"
+                                Margin="0,0,10,0"/>
+                        <ComboBox x:Name="ColorPicker4" 
+                                  Width="150"
+                                  SelectedIndex="0"
+                                  SelectionChanged="ColorPicker_SelectionChanged">
+                            <ComboBoxItem Content="Vivid Green" Tag="#39d353"/>
+                            <ComboBoxItem Content="Vivid Blue" Tag="#58a6ff"/>
+                            <ComboBoxItem Content="Vivid Purple" Tag="#d2a8ff"/>
+                            <ComboBoxItem Content="Vivid Red" Tag="#ff7b72"/>
+                            <ComboBoxItem Content="Vivid Orange" Tag="#ffb703"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Preset Themes -->
+                    <TextBlock Text="Preset Themes:" 
+                               Foreground="#FFFFFF"
+                               FontSize="12"
+                               FontWeight="Bold"
+                               Margin="0,15,0,10"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button Content="GitHub (Green)" 
+                                Click="ApplyGitHubTheme"
+                                Style="{StaticResource ColorPickerButtonStyle}"
+                                Margin="0,0,10,0"/>
+                        <Button Content="Ocean (Blue)" 
+                                Click="ApplyOceanTheme"
+                                Style="{StaticResource ColorPickerButtonStyle}"
+                                Margin="0,0,10,0"/>
+                        <Button Content="Sunset (Orange)" 
+                                Click="ApplySunsetTheme"
+                                Style="{StaticResource ColorPickerButtonStyle}"
+                                Margin="0,0,10,0"/>
+                        <Button Content="Purple Dream" 
+                                Click="ApplyPurpleTheme"
+                                Style="{StaticResource ColorPickerButtonStyle}"/>
+                    </StackPanel>
+
+                    <!-- Close Button -->
+                    <Button Content="Done" 
+                            Click="CloseThemePopup"
+                            Width="100"
+                            Height="30"
+                            Margin="0,20,0,0"
+                            Background="#238636"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            HorizontalAlignment="Center">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    CornerRadius="6"
+                                                    BorderThickness="0">
+                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#2ea043"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="1" Margin="20,15,20,10">
+                <TextBlock x:Name="UsernameText" 
+                           Text="Loading..." 
+                           Foreground="#FFFFFF"
+                           FontSize="16"
+                           FontWeight="Bold"/>
+                <TextBlock x:Name="TotalContributionsText" 
+                           Text="Total contributions: 0" 
+                           Foreground="#D0FFFFFF"
+                           FontSize="12"
+                           Margin="0,5,0,0"/>
+            </StackPanel>
+
+            <!-- Month Labels -->
+            <ItemsControl x:Name="MonthLabels" 
+                          Grid.Row="2"
+                          Margin="20,5,20,0">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding MonthName}" 
+                                   Foreground="#B0FFFFFF"
+                                   FontSize="10"
+                                   Width="{Binding Width}"
+                                   Margin="2,0,0,0"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Contribution Grid -->
+            <ScrollViewer Grid.Row="4" 
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Disabled"
+                          Margin="20,5,20,0">
+                <ItemsControl x:Name="ContributionGrid">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Vertical" 
+                                       Height="105"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Width="12" 
+                                    Height="12" 
+                                    Margin="2"
+                                    Background="{Binding Color}"
+                                    CornerRadius="2"
+                                    ToolTip="{Binding Tooltip}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Refresh Button and Legend -->
+            <StackPanel Grid.Row="5" 
+                        Orientation="Horizontal" 
+                        Margin="20,10,20,15">
+                <Button x:Name="RefreshButton" 
+                        Content="Refresh" 
+                        Click="RefreshButton_Click"
+                        Width="100"
+                        Height="30"
+                        Background="#80238636"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                CornerRadius="6"
+                                                BorderThickness="0">
+                                            <ContentPresenter HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#A02ea043"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Legend -->
+                <StackPanel Orientation="Horizontal" 
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="Less" 
+                               Foreground="#B0FFFFFF"
+                               FontSize="10"
+                               VerticalAlignment="Center"
+                               Margin="0,0,5,0"/>
+                    <Border Width="12" Height="12" Margin="2" Background="#161b22" CornerRadius="2"/>
+                    <Border Width="12" Height="12" Margin="2" Background="#0e4429" CornerRadius="2"/>
+                    <Border Width="12" Height="12" Margin="2" Background="#006d32" CornerRadius="2"/>
+                    <Border Width="12" Height="12" Margin="2" Background="#26a641" CornerRadius="2"/>
+                    <Border Width="12" Height="12" Margin="2" Background="#39d353" CornerRadius="2"/>
+                    <TextBlock Text="More" 
+                               Foreground="#B0FFFFFF"
+                               FontSize="10"
+                               VerticalAlignment="Center"
+                               Margin="5,0,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
