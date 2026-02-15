@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GitHubContributionWidget"
         mc:Ignorable="d"
-        Title="GitHub Contribution Widget - Login" 
+        Title="GitHub Contribution Widget - Login"
         Height="530" Width="500"
         ResizeMode="NoResize"
         WindowStyle="None"
@@ -14,279 +14,279 @@
         WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded">
 
-    <Window.Resources>
-        <!-- TextBox Style -->
-        <Style x:Key="LoginTextBoxStyle" TargetType="TextBox">
-            <Setter Property="Foreground" Value="#000000"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="CaretBrush" Value="#000000"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Padding" Value="12,10"/>
-        </Style>
+  <Window.Resources>
+    <!-- TextBox Style -->
+    <Style x:Key="LoginTextBoxStyle" TargetType="TextBox">
+      <Setter Property="Foreground" Value="#000000"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="CaretBrush" Value="#000000"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="Padding" Value="12,10"/>
+    </Style>
 
-        <!-- PasswordBox Style -->
-        <Style x:Key="LoginPasswordBoxStyle" TargetType="PasswordBox">
-            <Setter Property="Foreground" Value="#000000"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Padding" Value="12,10"/>
-        </Style>
+    <!-- PasswordBox Style -->
+    <Style x:Key="LoginPasswordBoxStyle" TargetType="PasswordBox">
+      <Setter Property="Foreground" Value="#000000"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="Padding" Value="12,10"/>
+    </Style>
 
-        <!-- Input Border Style -->
-        <Style x:Key="InputBorderStyle" TargetType="Border">
-            <Setter Property="Background" Value="#F5F5F5"/>
-            <Setter Property="BorderBrush" Value="#C0C0C0"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
-            <Style.Triggers>
+    <!-- Input Border Style -->
+    <Style x:Key="InputBorderStyle" TargetType="Border">
+      <Setter Property="Background" Value="#F5F5F5"/>
+      <Setter Property="BorderBrush" Value="#C0C0C0"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="BorderBrush" Value="#1f6feb"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+  </Window.Resources>
+
+  <Border BorderBrush="#50FFFFFF"
+          BorderThickness="1"
+          CornerRadius="8">
+
+    <Grid Margin="0">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="35"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+
+      <!-- Custom Title Bar -->
+      <Grid Grid.Row="0" Background="#20000000" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Text="GitHub Contribution Widget - Login"
+                   Grid.Column="0"
+                   Foreground="#FFFFFF"
+                   FontSize="12"
+                   FontWeight="SemiBold"
+                   VerticalAlignment="Center"
+                   Margin="15,0,0,0"/>
+
+        <!-- Close Button -->
+        <Button x:Name="CloseButton"
+                Grid.Column="1"
+                Content="✕"
+                Width="35"
+                Height="35"
+                FontSize="16"
+                Background="Transparent"
+                Foreground="#FFFFFF"
+                BorderThickness="0"
+                Cursor="Hand"
+                Click="CloseButton_Click"
+                ToolTip="Close">
+          <Button.Style>
+            <Style TargetType="Button">
+              <Setter Property="Template">
+                <Setter.Value>
+                  <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderThickness="0"
+                            CornerRadius="4">
+                      <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                    </Border>
+                  </ControlTemplate>
+                </Setter.Value>
+              </Setter>
+              <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="BorderBrush" Value="#1f6feb"/>
+                  <Setter Property="Background" Value="#80da3633"/>
+                  <Setter Property="Foreground" Value="White"/>
                 </Trigger>
-            </Style.Triggers>
-        </Style>
-    </Window.Resources>
+              </Style.Triggers>
+            </Style>
+          </Button.Style>
+        </Button>
+      </Grid>
 
-    <Border BorderBrush="#50FFFFFF" 
-            BorderThickness="1" 
-            CornerRadius="8">
+      <!-- Login Form -->
+      <StackPanel Grid.Row="1"
+                  Margin="40,30,40,40"
+                  VerticalAlignment="Center">
 
-        <Grid Margin="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="35"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <!-- GitHub Logo Icon -->
+        <Viewbox Width="60" Height="60" Margin="0,0,0,20">
+          <Canvas Width="24" Height="24">
+            <Path Data="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
+                  Fill="#FFFFFF"/>
+          </Canvas>
+        </Viewbox>
 
-            <!-- Custom Title Bar -->
-            <Grid Grid.Row="0" Background="#20000000" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+        <TextBlock Text="Login to GitHub"
+                   Foreground="#FFFFFF"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,30"/>
 
-                <TextBlock Text="GitHub Contribution Widget - Login" 
-                           Grid.Column="0"
-                           Foreground="#FFFFFF"
-                           FontSize="12"
-                           FontWeight="SemiBold"
-                           VerticalAlignment="Center"
-                           Margin="15,0,0,0"/>
+        <!-- Username Field -->
+        <TextBlock Text="GitHub Username"
+                   Foreground="#E0FFFFFF"
+                   FontSize="12"
+                   FontWeight="Medium"
+                   Margin="0,0,0,5"/>
+        <Border x:Name="UsernameBorder"
+                Style="{StaticResource InputBorderStyle}"
+                Height="44"
+                Margin="0,0,0,20">
+          <TextBox x:Name="UsernameTextBox"
+                   Style="{StaticResource LoginTextBoxStyle}"
+                   GotFocus="TextBox_GotFocus"
+                   LostFocus="TextBox_LostFocus"/>
+        </Border>
 
-                <!-- Close Button -->
-                <Button x:Name="CloseButton"
-                        Grid.Column="1"
-                        Content="✕" 
-                        Width="35" 
-                        Height="35"
-                        FontSize="16"
-                        Background="Transparent"
-                        Foreground="#FFFFFF"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        Click="CloseButton_Click"
-                        ToolTip="Close">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}"
-                                                BorderThickness="0"
-                                                CornerRadius="4">
-                                            <ContentPresenter HorizontalAlignment="Center"
-                                                            VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#80da3633"/>
-                                    <Setter Property="Foreground" Value="White"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                </Button>
-            </Grid>
+        <!-- API Token Field -->
+        <TextBlock Text="Personal Access Token"
+                   Foreground="#E0FFFFFF"
+                   FontSize="12"
+                   FontWeight="Medium"
+                   Margin="0,0,0,5"/>
+        <Border x:Name="TokenBorder"
+                Style="{StaticResource InputBorderStyle}"
+                Height="44"
+                Margin="0,0,0,10">
+          <PasswordBox x:Name="TokenPasswordBox"
+                       Style="{StaticResource LoginPasswordBoxStyle}"
+                       GotFocus="PasswordBox_GotFocus"
+                       LostFocus="PasswordBox_LostFocus"/>
+        </Border>
 
-            <!-- Login Form -->
-            <StackPanel Grid.Row="1" 
-                        Margin="40,30,40,40"
-                        VerticalAlignment="Center">
+        <!-- Help Text -->
+        <StackPanel Orientation="Horizontal"
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Center">
+          <TextBlock Foreground="#8b949e" FontSize="11">
+            <Hyperlink NavigateUri="https://github.com/settings/tokens"
+                       RequestNavigate="Hyperlink_RequestNavigate"
+                       Foreground="#58a6ff"
+                       TextDecorations="None">
+              <Run Text="Get your token here"/>
+            </Hyperlink>
+          </TextBlock>
+          <TextBlock Text=" (needs 'read:user' scope)"
+                     Foreground="#8b949e"
+                     FontSize="11"
+                     Margin="5,0,0,0"/>
+        </StackPanel>
 
-                <!-- GitHub Logo Icon -->
-                <Viewbox Width="60" Height="60" Margin="0,0,0,20">
-                    <Canvas Width="24" Height="24">
-                        <Path Data="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
-                              Fill="#FFFFFF"/>
-                    </Canvas>
-                </Viewbox>
+        <!-- Error Message -->
+        <Border x:Name="ErrorMessageBorder"
+                Background="#40da3633"
+                BorderBrush="#da3633"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12,8"
+                Margin="0,0,0,15"
+                Visibility="Collapsed">
+          <TextBlock x:Name="ErrorMessage"
+                     Text=""
+                     Foreground="#ff7b72"
+                     FontSize="12"
+                     TextWrapping="Wrap"/>
+        </Border>
 
-                <TextBlock Text="Login to GitHub" 
-                           Foreground="#FFFFFF"
-                           FontSize="24"
-                           FontWeight="Bold"
-                           HorizontalAlignment="Center"
-                           Margin="0,0,0,30"/>
+        <!-- Login Button -->
+        <Button x:Name="LoginButton"
+                Content="Login"
+                Height="44"
+                FontSize="14"
+                FontWeight="SemiBold"
+                Background="#238636"
+                Foreground="White"
+                BorderThickness="0"
+                Cursor="Hand"
+                Click="LoginButton_Click"
+                Margin="0,0,0,0">
+          <Button.Style>
+            <Style TargetType="Button">
+              <Setter Property="Template">
+                <Setter.Value>
+                  <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="6"
+                            BorderThickness="0">
+                      <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                    </Border>
+                  </ControlTemplate>
+                </Setter.Value>
+              </Setter>
+              <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                  <Setter Property="Background" Value="#2ea043"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                  <Setter Property="Background" Value="#40238636"/>
+                  <Setter Property="Cursor" Value="Arrow"/>
+                </Trigger>
+              </Style.Triggers>
+            </Style>
+          </Button.Style>
+        </Button>
 
-                <!-- Username Field -->
-                <TextBlock Text="GitHub Username" 
-                           Foreground="#E0FFFFFF"
-                           FontSize="12"
-                           FontWeight="Medium"
-                           Margin="0,0,0,5"/>
-                <Border x:Name="UsernameBorder"
-                        Style="{StaticResource InputBorderStyle}"
-                        Height="44"
-                        Margin="0,0,0,20">
-                    <TextBox x:Name="UsernameTextBox"
-                             Style="{StaticResource LoginTextBoxStyle}"
-                             GotFocus="TextBox_GotFocus"
-                             LostFocus="TextBox_LostFocus"/>
-                </Border>
-
-                <!-- API Token Field -->
-                <TextBlock Text="Personal Access Token" 
-                           Foreground="#E0FFFFFF"
-                           FontSize="12"
-                           FontWeight="Medium"
-                           Margin="0,0,0,5"/>
-                <Border x:Name="TokenBorder"
-                        Style="{StaticResource InputBorderStyle}"
-                        Height="44"
-                        Margin="0,0,0,10">
-                    <PasswordBox x:Name="TokenPasswordBox"
-                                 Style="{StaticResource LoginPasswordBoxStyle}"
-                                 GotFocus="PasswordBox_GotFocus"
-                                 LostFocus="PasswordBox_LostFocus"/>
-                </Border>
-
-                <!-- Help Text -->
-                <StackPanel Orientation="Horizontal" 
-                            Margin="0,0,0,20"
-                            HorizontalAlignment="Center">
-                    <TextBlock Foreground="#8b949e" FontSize="11">
-                        <Hyperlink NavigateUri="https://github.com/settings/tokens" 
-                                   RequestNavigate="Hyperlink_RequestNavigate"
-                                   Foreground="#58a6ff"
-                                   TextDecorations="None">
-                            <Run Text="Get your token here"/>
-                        </Hyperlink>
-                    </TextBlock>
-                    <TextBlock Text=" (needs 'read:user' scope)" 
-                               Foreground="#8b949e"
-                               FontSize="11"
-                               Margin="5,0,0,0"/>
-                </StackPanel>
-
-                <!-- Error Message -->
-                <Border x:Name="ErrorMessageBorder"
-                        Background="#40da3633"
-                        BorderBrush="#da3633"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        Padding="12,8"
-                        Margin="0,0,0,15"
-                        Visibility="Collapsed">
-                    <TextBlock x:Name="ErrorMessage"
-                               Text=""
-                               Foreground="#ff7b72"
-                               FontSize="12"
-                               TextWrapping="Wrap"/>
-                </Border>
-
-                <!-- Login Button -->
-                <Button x:Name="LoginButton"
-                        Content="Login"
-                        Height="44"
-                        FontSize="14"
-                        FontWeight="SemiBold"
-                        Background="#238636"
-                        Foreground="White"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        Click="LoginButton_Click"
-                        Margin="0,0,0,0">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}"
-                                                CornerRadius="6"
-                                                BorderThickness="0">
-                                            <ContentPresenter HorizontalAlignment="Center"
-                                                            VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#2ea043"/>
-                                </Trigger>
-                                <Trigger Property="IsEnabled" Value="False">
-                                    <Setter Property="Background" Value="#40238636"/>
-                                    <Setter Property="Cursor" Value="Arrow"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                </Button>
-
-                <!-- Remember Me Checkbox -->
-                <CheckBox x:Name="RememberMeCheckBox"
-                          Content="Remember my credentials"
-                          Foreground="#E0FFFFFF"
-                          Margin="0,15,0,0"
-                          HorizontalAlignment="Center"
-                          IsChecked="True">
-                    <CheckBox.Style>
-                        <Style TargetType="CheckBox">
-                            <Setter Property="Foreground" Value="#E0FFFFFF"/>
-                            <Setter Property="FontSize" Value="13"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="CheckBox">
-                                        <StackPanel Orientation="Horizontal">
-                                            <Border x:Name="Border"
-                                                    Width="18"
-                                                    Height="18"
-                                                    Background="#40FFFFFF"
-                                                    BorderBrush="#80FFFFFF"
-                                                    BorderThickness="1"
-                                                    CornerRadius="3"
-                                                    Margin="0,0,8,0">
-                                                <Path x:Name="CheckMark"
-                                                      Data="M0,5 L3,8 L8,0"
-                                                      Stroke="#FFFFFF"
-                                                      StrokeThickness="2"
-                                                      Visibility="Collapsed"
-                                                      Margin="3"/>
-                                            </Border>
-                                            <ContentPresenter VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsChecked" Value="True">
-                                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
-                                                <Setter TargetName="Border" Property="Background" Value="#1f6feb"/>
-                                                <Setter TargetName="Border" Property="BorderBrush" Value="#1f6feb"/>
-                                            </Trigger>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Border" Property="BorderBrush" Value="#1f6feb"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </CheckBox.Style>
-                </CheckBox>
-            </StackPanel>
-        </Grid>
-    </Border>
+        <!-- Remember Me Checkbox -->
+        <CheckBox x:Name="RememberMeCheckBox"
+                  Content="Remember my credentials"
+                  Foreground="#E0FFFFFF"
+                  Margin="0,15,0,0"
+                  HorizontalAlignment="Center"
+                  IsChecked="True">
+          <CheckBox.Style>
+            <Style TargetType="CheckBox">
+              <Setter Property="Foreground" Value="#E0FFFFFF"/>
+              <Setter Property="FontSize" Value="13"/>
+              <Setter Property="Template">
+                <Setter.Value>
+                  <ControlTemplate TargetType="CheckBox">
+                    <StackPanel Orientation="Horizontal">
+                      <Border x:Name="Border"
+                              Width="18"
+                              Height="18"
+                              Background="#40FFFFFF"
+                              BorderBrush="#80FFFFFF"
+                              BorderThickness="1"
+                              CornerRadius="3"
+                              Margin="0,0,8,0">
+                        <Path x:Name="CheckMark"
+                              Data="M0,5 L3,8 L8,0"
+                              Stroke="#FFFFFF"
+                              StrokeThickness="2"
+                              Visibility="Collapsed"
+                              Margin="3"/>
+                      </Border>
+                      <ContentPresenter VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                      <Trigger Property="IsChecked" Value="True">
+                        <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                        <Setter TargetName="Border" Property="Background" Value="#1f6feb"/>
+                        <Setter TargetName="Border" Property="BorderBrush" Value="#1f6feb"/>
+                      </Trigger>
+                      <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="Border" Property="BorderBrush" Value="#1f6feb"/>
+                      </Trigger>
+                    </ControlTemplate.Triggers>
+                  </ControlTemplate>
+                </Setter.Value>
+              </Setter>
+            </Style>
+          </CheckBox.Style>
+        </CheckBox>
+      </StackPanel>
+    </Grid>
+  </Border>
 </Window>
