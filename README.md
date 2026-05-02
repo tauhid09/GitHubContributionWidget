@@ -178,7 +178,17 @@ cd GitHubContributionWidget
 3. Login with your credentials on the first launch.
 
 ### Option 2: Download Release
-Download the latest `.exe` from the [Releases](https://github.com/tauhid09/GitHubContributionWidget/releases) page and run it directly.
+1. Download the latest `.zip` from the [Releases](https://github.com/tauhid09/GitHubContributionWidget/releases) page.
+2. **Unzip the folder.** You will see the following files:
+
+   ![Setup Folder](screenshots/setup_folder.png)
+
+3. **Run `setup.exe`** — this is the important file to install the widget.
+
+   > ⚠️ **Do NOT run `GitHubContributionWidget.application`** — always use `setup.exe` for a proper installation.
+
+4. Windows may show a SmartScreen warning — click **"More info"** → **"Run anyway"**.
+5. The widget will install and launch automatically. Login with your credentials on the first launch.
 
 ---
 
