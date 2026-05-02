@@ -1,9 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GitHubContributionWidget
 {
@@ -22,12 +23,21 @@ namespace GitHubContributionWidget
                 new AuthenticationHeaderValue("Bearer", token);
         }
 
-        public async Task<ContributionData> GetContributionsAsync()
+        public async Task<ContributionData> GetContributionsAsync(int? year = null)
         {
+            string collectionArgs = "";
+            if (year.HasValue)
+            {
+                string fromDate = $"{year.Value}-01-01T00:00:00Z";
+                string toDate = $"{year.Value}-12-31T23:59:59Z";
+                collectionArgs = $"(from: \"{fromDate}\", to: \"{toDate}\")";
+            }
+
             string query = @"
             {
                 user(login: """ + _username + @""") {
-                    contributionsCollection {
+                    avatarUrl
+                    contributionsCollection" + collectionArgs + @" {
                         contributionCalendar {
                             totalContributions
                             weeks {
@@ -37,6 +47,13 @@ namespace GitHubContributionWidget
                                 }
                             }
                         }
+                        totalCommitContributions
+                        totalPullRequestContributions
+                        totalIssueContributions
+                        totalPullRequestReviewContributions
+                    }
+                    totalYears: contributionsCollection {
+                        contributionYears
                     }
                 }
             }";
@@ -63,9 +80,27 @@ namespace GitHubContributionWidget
         private ContributionData ParseContributionData(JObject data)
         {
             var contributionData = new ContributionData();
-            var calendar = data["data"]["user"]["contributionsCollection"]["contributionCalendar"];
+            var userNode = data["data"]["user"];
+            var collection = userNode["contributionsCollection"];
+            var calendar = collection["contributionCalendar"];
 
+            contributionData.AvatarUrl = userNode["avatarUrl"]?.ToString();
             contributionData.TotalContributions = (int)calendar["totalContributions"];
+            contributionData.Commits = (int)collection["totalCommitContributions"];
+            contributionData.PullRequests = (int)collection["totalPullRequestContributions"];
+            contributionData.Issues = (int)collection["totalIssueContributions"];
+            contributionData.Reviews = (int)collection["totalPullRequestReviewContributions"];
+
+            // Parse actual active years
+            var yearsToken = userNode["totalYears"]?["contributionYears"];
+            if (yearsToken != null)
+            {
+                contributionData.Years = yearsToken.Select(y => (int)y).ToList();
+            }
+            else
+            {
+                contributionData.Years = new List<int> { DateTime.Now.Year };
+            }
 
             foreach (var week in calendar["weeks"])
             {
@@ -85,7 +120,13 @@ namespace GitHubContributionWidget
 
     public class ContributionData
     {
+        public string AvatarUrl { get; set; }
         public int TotalContributions { get; set; }
+        public int Commits { get; set; }
+        public int PullRequests { get; set; }
+        public int Issues { get; set; }
+        public int Reviews { get; set; }
+        public List<int> Years { get; set; } = new List<int>();
         public List<ContributionDay> Days { get; set; } = new List<ContributionDay>();
     }
 

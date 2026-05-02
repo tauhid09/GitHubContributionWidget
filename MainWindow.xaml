@@ -1,4 +1,4 @@
-﻿<Window x:Class="GitHubContributionWidget.MainWindow"
+<Window x:Class="GitHubContributionWidget.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,284 +6,408 @@
         xmlns:local="clr-namespace:GitHubContributionWidget"
         mc:Ignorable="d"
         Title="GitHub Contributions"
-        Height="300" Width="900"
-        ResizeMode="NoResize"
+        Height="290" Width="900"
+        ResizeMode="CanResizeWithGrip"
         WindowStyle="None"
         Background="Transparent"
         AllowsTransparency="True"
-        Loaded="Window_Loaded">
+        ShowInTaskbar="False"
+        WindowStartupLocation="Manual"
+        Loaded="Window_Loaded"
+        LocationChanged="Window_LocationChanged"
+        Closing="Window_Closing">
 
   <Window.Resources>
-    <!-- Color Picker Popup Style -->
-    <Style x:Key="ColorPickerButtonStyle" TargetType="Button">
+
+    <!-- Menu item button style -->
+    <Style x:Key="MenuItemStyle" TargetType="Button">
       <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#E0FFFFFF"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Cursor" Value="Hand"/>
-      <Setter Property="Foreground" Value="#FFFFFF"/>
-      <Setter Property="Padding" Value="10,5"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="Padding" Value="14,10"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
-            <Border Background="{TemplateBinding Background}"
-                    BorderThickness="0"
-                    CornerRadius="4"
-                    Padding="{TemplateBinding Padding}">
-              <ContentPresenter HorizontalAlignment="Center"
-                              VerticalAlignment="Center"/>
+            <Border x:Name="Bg"
+                    Background="{TemplateBinding Background}"
+                    BorderThickness="0">
+              <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="Center"
+                                Margin="{TemplateBinding Padding}"/>
             </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bg" Property="Background" Value="#25FFFFFF"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Bg" Property="Background" Value="#40FFFFFF"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
-      <Style.Triggers>
-        <Trigger Property="IsMouseOver" Value="True">
-          <Setter Property="Background" Value="#40FFFFFF"/>
-        </Trigger>
-      </Style.Triggers>
     </Style>
+
+    <!-- Toggle menu item style -->
+    <Style x:Key="MenuToggleStyle" TargetType="ToggleButton">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#E0FFFFFF"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="Padding" Value="14,10"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ToggleButton">
+            <Border x:Name="Bg"
+                    Background="{TemplateBinding Background}"
+                    BorderThickness="0">
+              <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="Center"
+                                Margin="{TemplateBinding Padding}"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bg" Property="Background" Value="#25FFFFFF"/>
+              </Trigger>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Bg" Property="Background" Value="#20238636"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Segment button style -->
+    <Style x:Key="SegmentBtnStyle" TargetType="Button">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#C9D1D9"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Padding" Value="12,6"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bg" Background="{TemplateBinding Background}" CornerRadius="4">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bg" Property="Background" Value="#30363D"/>
+                <Setter Property="Foreground" Value="#FFFFFF"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
   </Window.Resources>
 
   <Border BorderBrush="#50FFFFFF"
           BorderThickness="1"
-          CornerRadius="8">
+          CornerRadius="0">
 
     <Grid Margin="0">
       <Grid.RowDefinitions>
         <RowDefinition Height="35"/>
         <RowDefinition Height="Auto"/>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>
-        <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
 
       <!-- Custom Title Bar -->
       <Grid Grid.Row="0" Background="#20000000" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
         <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
           <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <TextBlock Text="GitHub Contributions Widget"
-                   Grid.Column="0"
+        <!-- GitHub Logo -->
+        <Path Grid.Column="0" Fill="#FFFFFF" VerticalAlignment="Center" Margin="15,0,8,0"
+              Data="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+          <Path.LayoutTransform>
+            <ScaleTransform ScaleX="1.2" ScaleY="1.2"/>
+          </Path.LayoutTransform>
+        </Path>
+
+        <TextBlock Text="GitHub Contributions"
+                   Grid.Column="1"
                    Foreground="#FFFFFF"
-                   FontSize="12"
+                   FontSize="13"
                    FontWeight="SemiBold"
-                   VerticalAlignment="Center"
-                   Margin="15,0,0,0"/>
+                   VerticalAlignment="Center"/>
 
-        <StackPanel Grid.Column="1"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right">
+        <!-- Widget Badge -->
+        <Border Grid.Column="2" Background="#1A238636" BorderBrush="#238636" BorderThickness="1" CornerRadius="10" Padding="8,2" Margin="10,0,0,0" VerticalAlignment="Center">
+           <TextBlock Text="Widget" Foreground="#39D353" FontSize="10" FontWeight="SemiBold"/>
+        </Border>
 
-          <!-- Theme Customization Button -->
+        <!-- Three-dot menu button -->
+        <Grid Grid.Column="4">
 
-
-          <!-- Pin Button with SVG Icon -->
-          <ToggleButton x:Name="PinButton"
-                        Width="35"
-                        Height="35"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        ToolTip="Pin on top (disables close)"
-                        Checked="PinButton_Checked"
-                        Unchecked="PinButton_Unchecked">
-            <ToggleButton.Style>
-              <Style TargetType="ToggleButton">
+          <Button x:Name="MenuButton"
+                  Width="35"
+                  Height="35"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  Cursor="Hand"
+                  ToolTip="Options"
+                  Click="MenuButton_Click">
+            <Button.Style>
+              <Style TargetType="Button">
                 <Setter Property="Template">
                   <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
-                      <Border Background="{TemplateBinding Background}"
+                    <ControlTemplate TargetType="Button">
+                      <Border x:Name="Bg"
+                              Background="{TemplateBinding Background}"
                               BorderThickness="0"
                               CornerRadius="4">
-                        <Viewbox Width="16" Height="16"
-                                 HorizontalAlignment="Center"
-                                 VerticalAlignment="Center">
-                          <Canvas Width="24" Height="24">
-                            <Path x:Name="PinIcon"
-                                  Data="M9.13203 7.79666L3.01631 9.46458C2.27555 9.66661 2.02939 10.5935 2.57232 11.1364L7.01071 15.5748L2.06096 20.5246C1.67044 20.9151 1.67044 21.5483 2.06096 21.9388C2.45148 22.3293 3.08465 22.3293 3.47517 21.9388L8.42492 16.989L12.8633 21.4274C13.4062 21.9704 14.3331 21.7242 14.5352 20.9834L16.2031 14.8677L21.8599 9.21087L22.2135 9.56442C22.4088 9.75969 22.7253 9.75969 22.9206 9.56442L23.6277 8.85732C23.823 8.66205 23.823 8.34547 23.6277 8.15021L15.8495 0.372033C15.6543 0.17677 15.3377 0.17677 15.1424 0.372032L14.4353 1.07914C14.2401 1.2744 14.2401 1.59098 14.4353 1.78625L14.7889 2.1398L9.13203 7.79666ZM14.2736 14.3415C14.3651 14.0057 14.5428 13.6996 14.7889 13.4535L20.4457 7.79666L16.2031 3.55401L10.5462 9.21087C10.3001 9.45698 9.99405 9.63461 9.65826 9.72618L5.20501 10.9407L13.059 18.7947L14.2736 14.3415Z"
-                                  Fill="#FFFFFF"
-                                  Opacity="0.7"/>
-                          </Canvas>
-                        </Viewbox>
+                        <TextBlock Text="&#x22EF;"
+                                   Foreground="#FFFFFF"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,0,4"/>
                       </Border>
                       <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                          <Setter Property="Background" Value="#401f6feb"/>
-                        </Trigger>
-                        <Trigger Property="IsChecked" Value="True">
-                          <Setter TargetName="PinIcon" Property="Opacity" Value="1"/>
-                          <Setter Property="Background" Value="#601f6feb"/>
+                          <Setter TargetName="Bg" Property="Background" Value="#30FFFFFF"/>
                         </Trigger>
                       </ControlTemplate.Triggers>
                     </ControlTemplate>
                   </Setter.Value>
                 </Setter>
               </Style>
-            </ToggleButton.Style>
-          </ToggleButton>
-
-          <!-- Close Button -->
-          <Button x:Name="CloseButton"
-                  Content="✕"
-                  Width="35"
-                  Height="35"
-                  FontSize="16"
-                  Background="Transparent"
-                  Foreground="#FFFFFF"
-                  BorderThickness="0"
-                  Cursor="Hand"
-                  Click="CloseButton_Click"
-                  ToolTip="Close">
-            <Button.Style>
-              <Style TargetType="Button">
-                <Setter Property="Template">
-                  <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                      <Border Background="{TemplateBinding Background}"
-                              BorderThickness="0"
-                              CornerRadius="4">
-                        <ContentPresenter HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"/>
-                      </Border>
-                    </ControlTemplate>
-                  </Setter.Value>
-                </Setter>
-                <Style.Triggers>
-                  <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Foreground" Value="#60FFFFFF"/>
-                    <Setter Property="Opacity" Value="0.4"/>
-                  </Trigger>
-                  <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#80da3633"/>
-                    <Setter Property="Foreground" Value="White"/>
-                  </Trigger>
-                </Style.Triggers>
-              </Style>
             </Button.Style>
           </Button>
+
+          <!-- Dropdown Popup Menu -->
+          <Popup x:Name="OptionsPopup"
+                 PlacementTarget="{Binding ElementName=MenuButton}"
+                 Placement="Bottom"
+                 StaysOpen="False"
+                 AllowsTransparency="True">
+            <Border Background="#1C2128"
+                    BorderBrush="#50FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="0,6"
+                    MinWidth="210">
+              <Border.Effect>
+                <DropShadowEffect Color="#000000"
+                                  BlurRadius="18"
+                                  ShadowDepth="4"
+                                  Opacity="0.5"/>
+              </Border.Effect>
+
+              <StackPanel>
+
+                <!-- Lock Position -->
+                <ToggleButton x:Name="MenuPinToggle"
+                              Style="{StaticResource MenuToggleStyle}"
+                              Checked="MenuPin_Checked"
+                              Unchecked="MenuPin_Unchecked">
+                  <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="&#x1F4CC;" FontSize="13" Margin="0,0,10,0"/>
+                    <StackPanel>
+                      <TextBlock x:Name="PinLabel" Text="Locked (drag disabled)" FontWeight="SemiBold"/>
+                      <TextBlock Text="Uncheck to allow dragging the widget"
+                                 FontSize="10"
+                                 Foreground="#80FFFFFF"
+                                 Margin="0,1,0,0"/>
+                    </StackPanel>
+                  </StackPanel>
+                </ToggleButton>
+
+                <!-- Divider -->
+                <Border Height="1" Background="#30FFFFFF" Margin="14,4"/>
+
+                <!-- Launch at Startup -->
+                <ToggleButton x:Name="MenuStartupToggle"
+                              Style="{StaticResource MenuToggleStyle}"
+                              Checked="MenuStartup_Checked"
+                              Unchecked="MenuStartup_Unchecked">
+                  <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="&#x26A1;" FontSize="13" Margin="0,0,10,0"/>
+                    <StackPanel>
+                      <TextBlock x:Name="StartupLabel" Text="Launch at startup" FontWeight="SemiBold"/>
+                      <TextBlock x:Name="StartupSubtext"
+                                 Text="Opens automatically after login"
+                                 FontSize="10"
+                                 Foreground="#80FFFFFF"
+                                 Margin="0,1,0,0"/>
+                    </StackPanel>
+                  </StackPanel>
+                </ToggleButton>
+
+                <!-- Divider -->
+                <Border Height="1" Background="#30FFFFFF" Margin="14,4"/>
+
+                <!-- Refresh -->
+                <Button Style="{StaticResource MenuItemStyle}"
+                        Click="MenuRefresh_Click">
+                  <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="&#x1F504;" FontSize="13" Margin="0,0,10,0"/>
+                    <TextBlock Text="Refresh contributions" FontWeight="SemiBold"/>
+                  </StackPanel>
+                </Button>
+
+                <!-- Divider -->
+                <Border Height="1" Background="#30FFFFFF" Margin="14,4"/>
+
+                <!-- Logout -->
+                <Button Style="{StaticResource MenuItemStyle}"
+                        Click="MenuLogout_Click">
+                  <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="&#x1F512;" FontSize="13" Margin="0,0,10,0"/>
+                    <TextBlock Text="Log out" FontWeight="SemiBold"/>
+                  </StackPanel>
+                </Button>
+
+                <!-- Divider -->
+                <Border Height="1" Background="#30FFFFFF" Margin="14,4"/>
+
+                <!-- Close -->
+                <Button Style="{StaticResource MenuItemStyle}"
+                        Click="MenuClose_Click">
+                  <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="&#x2715;" FontSize="13" Foreground="#FF6B6B" Margin="0,0,10,0"/>
+                    <StackPanel>
+                      <TextBlock Text="Close widget" FontWeight="SemiBold" Foreground="#FF6B6B"/>
+                      <TextBlock Text="The only way to close"
+                                 FontSize="10"
+                                 Foreground="#80FFFFFF"
+                                 Margin="0,1,0,0"/>
+                    </StackPanel>
+                  </StackPanel>
+                </Button>
+
+              </StackPanel>
+            </Border>
+          </Popup>
+        </Grid>
+      </Grid>
+
+      <!-- Header -->
+      <!-- Header -->
+      <Grid Grid.Row="1" Margin="20,15,20,10">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/> <!-- Avatar -->
+          <ColumnDefinition Width="*"/>    <!-- Text -->
+          <ColumnDefinition Width="Auto"/> <!-- Right Controls -->
+        </Grid.ColumnDefinitions>
+
+        <!-- Avatar -->
+        <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22" Background="#21262D" Margin="0,0,15,0" VerticalAlignment="Center">
+          <Border.Effect>
+            <DropShadowEffect ShadowDepth="2" BlurRadius="6" Opacity="0.3"/>
+          </Border.Effect>
+          <Ellipse Width="44" Height="44">
+            <Ellipse.Fill>
+              <ImageBrush x:Name="UserAvatarImage" Stretch="UniformToFill"/>
+            </Ellipse.Fill>
+          </Ellipse>
+        </Border>
+
+        <!-- Text Stack -->
+        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+          <TextBlock x:Name="UsernameText"
+                     Text="Loading..."
+                     Foreground="#FFFFFF"
+                     FontSize="18"
+                     FontWeight="Bold"/>
+          <TextBlock x:Name="TotalContributionsText"
+                     Text="Total contributions: 0"
+                     Foreground="#8B949E"
+                     FontSize="13"
+                     Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- Right side controls -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+          
+          <!-- View Dropdown -->
+          <Grid>
+             <Button x:Name="ViewSelectorBtn" Padding="12,6" Background="#21262D" Foreground="#C9D1D9" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" Click="ViewSelectorBtn_Click">
+               <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+               <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                 <!-- Simple graph icon path -->
+                 <Path Data="M1 11 L5 7 L8 10 L14 4 M14 4 L14 8 M14 4 L10 4" Stroke="#58A6FF" StrokeThickness="1.5" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" VerticalAlignment="Center" Margin="0,0,8,0" Width="15" Height="15"/>
+                 <TextBlock x:Name="CurrentViewText" Text="Heatmap" FontWeight="SemiBold" FontSize="12"/>
+                 <TextBlock Text="▼" FontSize="8" Margin="8,2,0,0" Foreground="#80FFFFFF"/>
+               </StackPanel>
+             </Button>
+
+             <Popup x:Name="ViewPopup" PlacementTarget="{Binding ElementName=ViewSelectorBtn}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True">
+               <Border Background="#1C2128" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="0,4" Margin="0,4,0,0" MinWidth="120">
+                 <StackPanel>
+                   <Button Style="{StaticResource MenuItemStyle}" Tag="Heatmap" Click="ViewOption_Click">
+                     <TextBlock Text="Heatmap" FontWeight="SemiBold"/>
+                   </Button>
+                   <Button Style="{StaticResource MenuItemStyle}" Tag="Line Chart" Click="ViewOption_Click">
+                     <TextBlock Text="Line Chart" FontWeight="SemiBold"/>
+                   </Button>
+                   <Button Style="{StaticResource MenuItemStyle}" Tag="Bar Chart" Click="ViewOption_Click">
+                     <TextBlock Text="Bar Chart" FontWeight="SemiBold"/>
+                   </Button>
+                   <Button Style="{StaticResource MenuItemStyle}" Tag="Pie Chart" Click="ViewOption_Click">
+                     <TextBlock Text="Pie Chart" FontWeight="SemiBold"/>
+                   </Button>
+                 </StackPanel>
+               </Border>
+             </Popup>
+          </Grid>
+
+          <!-- Timeframe Segment -->
+          <Border Background="#21262D" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Margin="10,0,0,0" Padding="2">
+             <StackPanel Orientation="Horizontal" x:Name="TimeframePanel">
+                <Button Content="1Y" Style="{StaticResource SegmentBtnStyle}" Foreground="#39D353" Background="#1A238636" FontWeight="SemiBold" Click="TimeframeBtn_Click" Tag="1Y"/>
+                <Button Content="6M" Style="{StaticResource SegmentBtnStyle}" Click="TimeframeBtn_Click" Tag="6M"/>
+                <Button Content="3M" Style="{StaticResource SegmentBtnStyle}" Click="TimeframeBtn_Click" Tag="3M"/>
+                <Button Content="1M" Style="{StaticResource SegmentBtnStyle}" Click="TimeframeBtn_Click" Tag="1M"/>
+             </StackPanel>
+          </Border>
+
+          <!-- Year Selector -->
+          <Grid Margin="10,0,0,0">
+             <Button x:Name="YearSelectorBtn" Padding="12,6" Background="#21262D" Foreground="#C9D1D9" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" Click="YearSelectorBtn_Click">
+               <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+               <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                 <TextBlock Text="📅" FontSize="12" Margin="0,0,8,0" Foreground="#8B949E"/>
+                 <TextBlock x:Name="CurrentYearText" Text="2025" FontWeight="SemiBold" FontSize="12"/>
+                 <TextBlock Text="▼" FontSize="8" Margin="8,2,0,0" Foreground="#80FFFFFF"/>
+               </StackPanel>
+             </Button>
+
+             <Popup x:Name="YearPopup" PlacementTarget="{Binding ElementName=YearSelectorBtn}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True">
+               <Border Background="#1C2128" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="0,4" Margin="0,4,0,0" MinWidth="100">
+                 <StackPanel x:Name="YearPopupList">
+                   <!-- Filled dynamically or manually -->
+                 </StackPanel>
+               </Border>
+             </Popup>
+          </Grid>
+
         </StackPanel>
       </Grid>
 
+      <!-- Chart Canvas -->
+      <Canvas x:Name="ChartCanvas"
+              Grid.Row="2"
+              Margin="10,0,10,10"
+              SizeChanged="ChartCanvas_SizeChanged"
+              ClipToBounds="True"/>
 
-
-
-      <!-- Header -->
-      <StackPanel Grid.Row="1" Margin="20,15,20,10">
-        <TextBlock x:Name="UsernameText"
-                   Text="Loading..."
-                   Foreground="#FFFFFF"
-                   FontSize="16"
-                   FontWeight="Bold"/>
-        <TextBlock x:Name="TotalContributionsText"
-                   Text="Total contributions: 0"
-                   Foreground="#D0FFFFFF"
-                   FontSize="12"
-                   Margin="0,5,0,0"/>
-      </StackPanel>
-
-      <!-- Month Labels -->
-      <ItemsControl x:Name="MonthLabels"
-                    Grid.Row="2"
-                    Margin="20,5,20,0">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <StackPanel Orientation="Horizontal"/>
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <TextBlock Text="{Binding MonthName}"
-                       Foreground="#B0FFFFFF"
-                       FontSize="10"
-                       Width="{Binding Width}"
-                       Margin="2,0,0,0"/>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-
-      <!-- Contribution Grid -->
-      <ScrollViewer Grid.Row="4"
-                    HorizontalScrollBarVisibility="Disabled"
-                    VerticalScrollBarVisibility="Disabled"
-                    Margin="20,5,20,0">
-        <ItemsControl x:Name="ContributionGrid" Width="854">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <WrapPanel Orientation="Vertical"
-                         Height="112"/>
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <Border Width="12"
-                      Height="12"
-                      Margin="2"
-                      Background="{Binding Color}"
-                      CornerRadius="2"
-                      ToolTip="{Binding Tooltip}"/>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </ScrollViewer>
-
-      <!-- Refresh Button and Legend -->
-      <StackPanel Grid.Row="5"
-                  Orientation="Horizontal"
-                  Margin="20,10,20,15">
-        <Button x:Name="RefreshButton"
-                Content="Refresh"
-                Click="RefreshButton_Click"
-                Width="100"
-                Height="30"
-                Background="#80238636"
-                Foreground="White"
-                BorderThickness="0"
-                Cursor="Hand">
-          <Button.Style>
-            <Style TargetType="Button">
-              <Setter Property="Template">
-                <Setter.Value>
-                  <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}"
-                            CornerRadius="6"
-                            BorderThickness="0">
-                      <ContentPresenter HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"/>
-                    </Border>
-                  </ControlTemplate>
-                </Setter.Value>
-              </Setter>
-              <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                  <Setter Property="Background" Value="#A02ea043"/>
-                </Trigger>
-              </Style.Triggers>
-            </Style>
-          </Button.Style>
-        </Button>
-
-        <!-- Legend -->
-        <StackPanel Orientation="Horizontal"
-                    Margin="20,0,0,0"
-                    VerticalAlignment="Center">
-          <TextBlock Text="Less"
-                     Foreground="#B0FFFFFF"
-                     FontSize="10"
-                     VerticalAlignment="Center"
-                     Margin="0,0,5,0"/>
-          <Border Width="12" Height="12" Margin="2" Background="#161b22" CornerRadius="2"/>
-          <Border Width="12" Height="12" Margin="2" Background="#0e4429" CornerRadius="2"/>
-          <Border Width="12" Height="12" Margin="2" Background="#006d32" CornerRadius="2"/>
-          <Border Width="12" Height="12" Margin="2" Background="#26a641" CornerRadius="2"/>
-          <Border Width="12" Height="12" Margin="2" Background="#39d353" CornerRadius="2"/>
-          <TextBlock Text="More"
-                     Foreground="#B0FFFFFF"
-                     FontSize="10"
-                     VerticalAlignment="Center"
-                     Margin="5,0,0,0"/>
-        </StackPanel>
-      </StackPanel>
     </Grid>
   </Border>
 </Window>

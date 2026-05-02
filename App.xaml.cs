@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 
 namespace GitHubContributionWidget
@@ -7,32 +7,39 @@ namespace GitHubContributionWidget
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            // Set shutdown mode to manual
+            // Set shutdown mode to manual so we control when the app exits
             this.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             try
             {
-                // Show login window first
+                // If credentials are saved, open the widget IMMEDIATELY — no blocking API call.
+                // The widget itself fetches data in the background after it appears.
+                if (LoginWindow.TryGetSavedCredentials(out string savedUser, out string savedToken))
+                {
+                    var mw = new MainWindow(savedUser, savedToken);
+                    this.ShutdownMode = ShutdownMode.OnMainWindowClose;
+                    this.MainWindow = mw;
+                    mw.Show();
+                    return;
+                }
+
+                // No saved credentials — show the login window
                 var loginWindow = new LoginWindow();
                 bool? result = loginWindow.ShowDialog();
 
                 if (result == true)
                 {
-                    // Login successful, create and show main window with credentials
                     string username = loginWindow.Username;
-                    string token = loginWindow.Token;
+                    string token   = loginWindow.Token;
 
                     var mainWindow = new MainWindow(username, token);
-
-                    // Change shutdown mode back to close on last window
                     this.ShutdownMode = ShutdownMode.OnMainWindowClose;
-                    this.MainWindow = mainWindow;
-
+                    this.MainWindow   = mainWindow;
                     mainWindow.Show();
                 }
                 else
                 {
-                    // Login cancelled or closed, exit application
+                    // Login cancelled or closed — exit
                     this.Shutdown();
                 }
             }

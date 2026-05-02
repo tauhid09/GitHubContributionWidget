@@ -1,0 +1,253 @@
+# 🔍 GitHubContributionWidget — Full Project Analysis
+
+## 📁 Project Overview
+
+| Property | Value |
+|---|---|
+| **Type** | WPF Desktop Application (Windows) |
+| **Framework** | .NET Framework 4.8.1 |
+| **Output** | `WinExe` (windowed executable) |
+| **Namespace** | `GitHubContributionWidget` |
+| **Solution File** | `GitHubContributionWidget.slnx` |
+| **Project File** | `GitHubContributionWidget.csproj` |
+
+---
+
+## 📂 Folder & File Structure
+
+```
+GitHubContributionWidget/
+│
+├── 📄 App.xaml                    — App entry point (XAML)
+├── 📄 App.xaml.cs                 — App startup logic (C#)
+├── 📄 App.config                  — Application configuration
+│
+├── 📄 LoginWindow.xaml            — Login UI (XAML)
+├── 📄 LoginWindow.xaml.cs         — Login logic (C#)
+│
+├── 📄 MainWindow.xaml             — Main widget UI (XAML)
+├── 📄 MainWindow.xaml.cs          — Main widget logic (C#)
+│
+├── 📄 GitHubService.cs            — GitHub GraphQL API client
+├── 📄 StartupManager.cs           — Windows Registry startup manager
+├── 📄 WindowBlur.cs               — Win32 acrylic blur P/Invoke helper
+│
+├── 📄 packages.config             — NuGet package references
+├── 📄 GitHubContributionWidget.csproj — MSBuild project file
+├── 📄 GitHubContributionWidget.slnx   — Solution file
+├── 📄 README.md                   — (Minimal, nearly empty)
+│
+├── 📁 Properties/
+│   ├── AssemblyInfo.cs            — Assembly metadata
+│   ├── Resources.resx             — Embedded resources
+│   ├── Resources.Designer.cs      — Auto-generated resource accessor
+│   ├── Settings.settings          — App settings schema
+│   └── Settings.Designer.cs       — Auto-generated settings accessor
+│
+├── 📁 .git/                       — Git version control
+├── 📁 .vs/                        — Visual Studio workspace settings
+├── 📁 bin/                        — Build output (Debug / Release)
+├── 📁 obj/                        — MSBuild intermediates
+└── 📁 packages/                   — NuGet restored packages
+```
+
+---
+
+## 📄 File-by-File Analysis
+
+### 1. `App.xaml` + `App.xaml.cs` — Application Entry Point
+
+**Role:** Controls the startup flow of the whole application.
+
+**Key Logic (`App.xaml.cs`):**
+- Sets `ShutdownMode` to `OnExplicitShutdown` to prevent the app from closing when the `LoginWindow` dialog closes.
+- Opens `LoginWindow` as a **modal dialog**.
+- On successful login → extracts `Username` and `Token` from the login window → creates and shows `MainWindow`.
+- On login cancel/failure → calls `this.Shutdown()`.
+- Wraps startup in a `try/catch` to show a full error dialog on crash.
+
+---
+
+### 2. `LoginWindow.xaml` + `LoginWindow.xaml.cs` — Login Screen
+
+**Role:** Authenticates the user before showing the widget.
+
+**UI (`LoginWindow.xaml`):**
+- Custom borderless window (`WindowStyle="None"`, `AllowsTransparency="True"`).
+- Acrylic blur background via `WindowBlur.EnableBlur()`.
+- GitHub SVG logo rendered via WPF `Path`.
+- Username `TextBox` + PAT `PasswordBox` with custom styled borders.
+- "Get your token here" hyperlink → opens `https://github.com/settings/tokens`.
+- Error message `Border` (initially `Collapsed`).
+- Green GitHub-styled Login button with hover/disabled states.
+- "Remember my credentials" `CheckBox` with custom template.
+
+**Logic (`LoginWindow.xaml.cs`):**
+| Method | Purpose |
+|---|---|
+| `LoadSavedCredentials()` | Reads encrypted `github_credentials.dat` and pre-fills form |
+| `SaveCredentials()` | Encrypts and writes credentials to file using DPAPI |
+| `DeleteSavedCredentials()` | Deletes credential file |
+| `EncryptString()` / `DecryptString()` | Uses `ProtectedData` (DPAPI, `CurrentUser` scope) |
+| `LoginButton_Click()` | Validates → calls `GitHubService.GetContributionsAsync()` → sets `DialogResult = true` |
+| `ShowError()` / `HideError()` | Shows/hides error message border |
+| `TextBox_GotFocus/LostFocus` | Manually changes border color for focus indication |
+
+> **Security note:** Credentials are encrypted with Windows DPAPI (`DataProtectionScope.CurrentUser`), meaning they are machine- and user-specific. This is a reasonable approach for a local desktop widget.
+
+---
+
+### 3. `GitHubService.cs` — GitHub API Client
+
+**Role:** Fetches contribution data from GitHub's **GraphQL API v4**.
+
+**Models:**
+```csharp
+ContributionData  { TotalContributions, List<ContributionDay> Days }
+ContributionDay   { DateTime Date, int Count }
+```
+
+**Method: `GetContributionsAsync()`**
+- Sends a GraphQL POST to `https://api.github.com/graphql`.
+- Uses `Bearer` token auth.
+- Requests: `contributionCalendar → totalContributions + weeks → contributionDays (count + date)`.
+- Parses via `Newtonsoft.Json` (`JObject`).
+- Returns a flat `ContributionData` with all days.
+
+> [!WARNING]
+> The GraphQL query is built with **raw string interpolation** (injecting `_username` directly). This is a mild injection risk, though GitHub usernames are constrained. Consider using GraphQL **variables** instead.
+
+> [!WARNING]
+> No error handling for HTTP failure codes (non-2xx). If the API returns a 401/403, the code will likely throw a `NullReferenceException` when traversing `data["data"]["user"]`.
+
+---
+
+### 4. `MainWindow.xaml` + `MainWindow.xaml.cs` — Main Widget
+
+**Role:** The primary always-visible contribution widget displayed on the desktop.
+
+**UI (`MainWindow.xaml`):**
+- 900×300 custom borderless window with acrylic blur, `ResizeMode="NoResize"`.
+- Rounded border (8px corners), semi-transparent white outline.
+- **Title bar** — draggable, shows title + three-dot `⋯` menu button.
+- **Popup menu** (3-dot `⋯`):
+  - 📌 **Pin to Top** (ToggleButton) — sets `Topmost`
+  - ⚡ **Launch at Startup** (ToggleButton) — writes to Windows Registry
+  - 🔄 **Refresh** — reloads data
+  - ✕ **Close widget** — the ONLY way to close the window
+- **Header** — username + total contribution count.
+- **Month labels** — `ItemsControl` with proportional widths per month.
+- **Contribution Grid** — `WrapPanel(Vertical, Height=112)` inside a fixed-width `ItemsControl` (854px), each cell is a 12×12 `Border` with colored background and tooltip.
+- **Legend** — "Less ▪▪▪▪▪ More" + hint text.
+
+**Color Scheme (GitHub-style greens):**
+| Level | Color | Count Range |
+|---|---|---|
+| 0 | `#161b22` | 0 |
+| 1 | `#0e4429` | 1–3 |
+| 2 | `#006d32` | 4–6 |
+| 3 | `#26a641` | 7–9 |
+| 4 | `#39d353` | 10+ |
+
+**Logic (`MainWindow.xaml.cs`):**
+| Method | Purpose |
+|---|---|
+| `LoadContributions()` | async — fetches data, updates UI header + grid |
+| `OrganizeContributionsByWeek()` | Pads leading empty cells based on start day-of-week |
+| `GenerateMonthLabels()` | Calculates per-month label widths in pixels |
+| `GetColorForCount()` | Maps count → color brush |
+| `OnClosing()` / `Window_Closing` | Blocks all close attempts unless `_allowClose = true` |
+| `SyncMenuToggles()` | Refreshes toggle states without firing their events |
+| `MenuClose_Click()` | Sets `_allowClose = true` → calls `Close()` |
+
+---
+
+### 5. `StartupManager.cs` — Windows Startup Registry Manager
+
+**Role:** Registers/unregisters the app in Windows startup via the Registry.
+
+**Key:**
+```
+HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+"GitHubContributionWidget" = "\"<path-to-exe>\""
+```
+
+| Method | Purpose |
+|---|---|
+| `IsStartupEnabled()` | Checks if registry key exists and has a value |
+| `SetStartup(bool)` | Adds or removes the registry entry |
+
+> [!NOTE]
+> Uses `Assembly.GetExecutingAssembly().Location` to get the `.exe` path, which works correctly for .NET Framework WPF apps.
+
+---
+
+### 6. `WindowBlur.cs` — Acrylic Window Blur
+
+**Role:** Applies Windows Acrylic blur behind the window via P/Invoke.
+
+**Mechanism:**
+- Calls `SetWindowCompositionAttribute` from `user32.dll`.
+- Sets `AccentState = ACCENT_ENABLE_ACRYLICBLURBEHIND` with `GradientColor = 0x99000000` (60% black, in `AABBGGRR` format).
+
+> [!NOTE]
+> This Win32 API (`WCA_ACCENT_POLICY`) is an undocumented/private API. It works on Windows 10/11 but may break on future Windows versions.
+
+---
+
+## 📦 NuGet Dependencies
+
+| Package | Version | Purpose |
+|---|---|---|
+| `Newtonsoft.Json` | 13.0.4 | JSON parsing of GitHub API responses |
+| `System.IO` | 4.3.0 | Polyfill (likely redundant on .NET 4.8.1) |
+| `System.Net.Http` | 4.3.4 | `HttpClient` (likely redundant on .NET 4.8.1) |
+| `System.Runtime` | 4.3.0 | Runtime polyfill |
+| `System.Security.Cryptography.*` | 4.3.x | Crypto polyfills |
+| `System.Security.Cryptography.ProtectedData` | 10.0.3 | DPAPI for credential encryption |
+
+> [!TIP]
+> Several polyfill packages (`System.IO`, `System.Net.Http`, `System.Runtime`, `System.Security.Cryptography.*`) are unnecessary on .NET 4.8.1 since those APIs are built into the framework. They can be safely removed to reduce package bloat.
+
+---
+
+## 🏛️ Architecture Summary
+
+```mermaid
+graph TD
+    A[App.xaml.cs\nStartup] -->|ShowDialog| B[LoginWindow]
+    B -->|Validates via| C[GitHubService\nGraphQL API]
+    B -->|DialogResult=true| D[MainWindow]
+    D -->|Loads data via| C
+    D -->|EnableBlur| E[WindowBlur\nP/Invoke]
+    D -->|Read/Write| F[StartupManager\nRegistry]
+    B -->|Encrypt/Save| G[github_credentials.dat\nDPAPI]
+```
+
+---
+
+## ⚠️ Issues & Observations
+
+| # | Severity | Issue |
+|---|---|---|
+| 1 | 🔴 High | `GitHubService` has no HTTP error handling — non-2xx responses cause unhandled `NullReferenceException` |
+| 2 | 🟡 Medium | GraphQL query uses string interpolation for username — prefer GraphQL variables |
+| 3 | 🟡 Medium | `MainWindow` always forces startup registration on load (`if (!IsStartupEnabled()) SetStartup(true)`) — user can't permanently disable startup |
+| 4 | 🟡 Medium | `Class1.cs` is referenced in `.csproj` but file is missing from the root — will cause build error |
+| 5 | 🟠 Low | Redundant NuGet polyfill packages that aren't needed on .NET 4.8.1 |
+| 6 | 🟠 Low | `README.md` is essentially empty (26 bytes) |
+| 7 | 🟠 Low | `WindowBlur` uses an undocumented Win32 API — may break on future Windows versions |
+| 8 | 🟠 Low | Credentials file (`github_credentials.dat`) is saved in the current working directory — consider using `%APPDATA%` instead |
+| 9 | 🟠 Low | `ContributionGrid` has a hardcoded `Width="854"` — not responsive |
+
+---
+
+## ✅ What's Done Well
+
+- Clean separation between Login, Main UI, API service, and helpers.
+- Credential security using Windows DPAPI (user-scoped, machine-tied).
+- "Close blocking" pattern in `MainWindow` to prevent accidental closure.
+- GitHub-accurate contribution color scale.
+- Smooth acrylic glass UI matching GitHub's dark design language.
+- Correct async/await usage in `LoadContributions` and `LoginButton_Click`.
+- Startup registry management cleanly abstracted in `StartupManager`.

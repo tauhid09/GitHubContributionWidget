@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
@@ -13,7 +13,16 @@ namespace GitHubContributionWidget
 {
     public partial class LoginWindow : Window
     {
-        private const string CREDENTIALS_FILE = "github_credentials.dat";
+        private static string CREDENTIALS_FILE
+        {
+            get
+            {
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "GitHubContributionWidget");
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+                return Path.Combine(folder, "github_credentials.dat");
+            }
+        }
 
         public string Username { get; private set; }
         public string Token { get; private set; }
@@ -79,15 +88,12 @@ namespace GitHubContributionWidget
                 Username = username;
                 Token = token;
 
-                // Save credentials if remember me is checked
-                if (RememberMeCheckBox.IsChecked == true)
-                {
-                    SaveCredentials(username, token);
-                }
-                else
-                {
-                    DeleteSavedCredentials();
-                }
+                // Always save credentials so the app auto-logs in from next launch
+                SaveCredentials(username, token);
+
+                // Register to launch on Windows startup (once, silently)
+                if (!StartupManager.IsStartupEnabled())
+                    StartupManager.SetStartup(true);
 
                 // Set DialogResult to true to signal success
                 DialogResult = true;
@@ -131,27 +137,44 @@ namespace GitHubContributionWidget
 
         private void LoadSavedCredentials()
         {
+            if (TryGetSavedCredentials(out string username, out string token))
+            {
+                UsernameTextBox.Text = username;
+                TokenPasswordBox.Password = token;
+                RememberMeCheckBox.IsChecked = true;
+            }
+            else
+            {
+                DeleteSavedCredentials();
+            }
+        }
+
+        public static bool TryGetSavedCredentials(out string username, out string token)
+        {
+            username = null;
+            token = null;
             try
             {
                 if (File.Exists(CREDENTIALS_FILE))
                 {
                     string encryptedData = File.ReadAllText(CREDENTIALS_FILE);
-                    string decryptedData = DecryptString(encryptedData);
+                    
+                    // Inline decryption for the static method
+                    byte[] encryptedBytes = Convert.FromBase64String(encryptedData);
+                    byte[] decryptedBytes = ProtectedData.Unprotect(encryptedBytes, null, DataProtectionScope.CurrentUser);
+                    string decryptedData = Encoding.UTF8.GetString(decryptedBytes);
+                    
                     string[] parts = decryptedData.Split('|');
-
                     if (parts.Length == 2)
                     {
-                        UsernameTextBox.Text = parts[0];
-                        TokenPasswordBox.Password = parts[1];
-                        RememberMeCheckBox.IsChecked = true;
+                        username = parts[0];
+                        token = parts[1];
+                        return true;
                     }
                 }
             }
-            catch
-            {
-                // If decryption fails, just ignore and start fresh
-                DeleteSavedCredentials();
-            }
+            catch { }
+            return false;
         }
 
         private void SaveCredentials(string username, string token)
