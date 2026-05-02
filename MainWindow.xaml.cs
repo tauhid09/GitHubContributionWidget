@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -33,6 +34,16 @@ namespace GitHubContributionWidget
         // Win32 message constants — block Win+D / Show Desktop
         private const int WM_SYSCOMMAND = 0x0112;
         private const int SC_MINIMIZE   = 0xF020;
+
+        // Win32 interop — make widget invisible to Alt+Tab
+        private const int GWL_EXSTYLE      = -20;
+        private const int WS_EX_TOOLWINDOW = 0x00000080;
+
+        [DllImport("user32.dll")]
+        private static extern int GetWindowLong(IntPtr hwnd, int index);
+
+        [DllImport("user32.dll")]
+        private static extern int SetWindowLong(IntPtr hwnd, int index, int newStyle);
 
         // Y-axis tick values the user requested
         private static readonly int[] YTicks = { 0, 5, 10, 15, 20, 25, 31 };
@@ -66,20 +77,24 @@ namespace GitHubContributionWidget
         }
 
         // ---------------------------------------------------------------
-        // WndProc hook — block SC_MINIMIZE (Win+D / Show Desktop)
+        // True widget behavior — hide from Alt+Tab + block minimize
         // ---------------------------------------------------------------
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            var source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+            var hwnd = new WindowInteropHelper(this).Handle;
+
+            // Hide from Alt+Tab by applying WS_EX_TOOLWINDOW extended style
+            int exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+            SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TOOLWINDOW);
+
+            // Hook WndProc to block SC_MINIMIZE (Win+D, Show Desktop, etc.)
+            var source = HwndSource.FromHwnd(hwnd);
             source?.AddHook(WndProc);
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            // Block SC_MINIMIZE sent via Alt+Space menu or keyboard shortcuts.
-            // Note: touchpad gesture / Win+D use ShowWindow() directly, so they
-            // are caught by OnStateChanged below instead.
             if (msg == WM_SYSCOMMAND && (wParam.ToInt32() & 0xFFF0) == SC_MINIMIZE)
                 handled = true;
             return IntPtr.Zero;
