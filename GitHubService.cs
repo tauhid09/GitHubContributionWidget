@@ -51,6 +51,8 @@ namespace GitHubContributionWidget
                         totalPullRequestContributions
                         totalIssueContributions
                         totalPullRequestReviewContributions
+                        totalRepositoryContributions
+                        restrictedContributionsCount
                     }
                     totalYears: contributionsCollection {
                         contributionYears
@@ -85,11 +87,28 @@ namespace GitHubContributionWidget
             var calendar = collection["contributionCalendar"];
 
             contributionData.AvatarUrl = userNode["avatarUrl"]?.ToString();
-            contributionData.TotalContributions = (int)calendar["totalContributions"];
-            contributionData.Commits = (int)collection["totalCommitContributions"];
+
+            // totalContributions from the calendar includes public commits, issues, PRs, reviews
+            int calendarTotal = (int)calendar["totalContributions"];
+
+            // restrictedContributionsCount = private repo contributions not shown publicly
+            int restricted = 0;
+            var restrictedToken = collection["restrictedContributionsCount"];
+            if (restrictedToken != null)
+                restricted = (int)restrictedToken;
+
+            // The true total includes both public and private contributions
+            contributionData.TotalContributions = calendarTotal + restricted;
+
+            contributionData.Commits      = (int)collection["totalCommitContributions"];
             contributionData.PullRequests = (int)collection["totalPullRequestContributions"];
-            contributionData.Issues = (int)collection["totalIssueContributions"];
-            contributionData.Reviews = (int)collection["totalPullRequestReviewContributions"];
+            contributionData.Issues       = (int)collection["totalIssueContributions"];
+            contributionData.Reviews      = (int)collection["totalPullRequestReviewContributions"];
+
+            // Parse repository contributions (creating new repos)
+            var repoContribs = collection["totalRepositoryContributions"];
+            if (repoContribs != null)
+                contributionData.RepoContributions = (int)repoContribs;
 
             // Parse actual active years
             var yearsToken = userNode["totalYears"]?["contributionYears"];
@@ -126,6 +145,7 @@ namespace GitHubContributionWidget
         public int PullRequests { get; set; }
         public int Issues { get; set; }
         public int Reviews { get; set; }
+        public int RepoContributions { get; set; }
         public List<int> Years { get; set; } = new List<int>();
         public List<ContributionDay> Days { get; set; } = new List<ContributionDay>();
     }

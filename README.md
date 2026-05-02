@@ -1,69 +1,211 @@
-# 📈 GitHub Contribution Desktop Widget
+<p align="center">
+  <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="80" alt="GitHub Logo"/>
+</p>
 
-A sleek, modern, and fully interactive desktop widget that brings your GitHub contribution graph directly to your Windows desktop. Built with a beautiful frosted glass-morphism aesthetic, it syncs live with GitHub's GraphQL API to provide rich, animated visualizations of your coding activity.
+<h1 align="center">📈 GitHub Contribution Desktop Widget</h1>
+
+<p align="center">
+  A beautiful, modern desktop widget that displays your GitHub contribution graph directly on your Windows desktop — with live data, stunning animations, and a frosted glass-morphism design.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/.NET_Framework-4.8.1-blue?logo=dotnet" alt=".NET Framework"/>
+  <img src="https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows" alt="Windows"/>
+  <img src="https://img.shields.io/badge/API-GitHub_GraphQL-black?logo=github" alt="GitHub GraphQL"/>
+  <img src="https://img.shields.io/badge/Security-DPAPI_Encrypted-green?logo=letsencrypt" alt="DPAPI"/>
+</p>
 
 ---
 
-## ✨ Features
+## ✨ Preview
 
-- **Four Dynamic Views:**
-  - **Heatmap:** The classic GitHub contribution calendar, highly optimized to densely fill the widget space.
-  - **Bar Chart (Overview):** Monthly aggregation of your active days and contributions.
-  - **Line Chart (Trend):** See your coding momentum and growth over the year.
-  - **Pie Chart (Breakdown):** A proportional split of your Commits, Pull Requests, Issues, and Code Reviews.
-- **Dynamic Timeframes:** Instantly filter your data by **1 Year (1Y)**, **6 Months (6M)**, **3 Months (3M)**, or **1 Month (1M)** segments.
-- **Historical Year Selector:** Dynamically queries GitHub to find the exact years you've been active, generating a custom dropdown to browse your history.
-- **Live Avatar & Profile:** Automatically fetches and displays your live GitHub profile picture.
-- **Premium Desktop Integration:** 
-  - Custom glass-morphism transparent background.
-  - Floats seamlessly on your desktop (ignores the standard Windows "Minimize All Application" gesture so it stays visible).
-  - Draggable, pinnable, and resizable interface.
-- **Secure Credentials:** Safely encrypts and stores your GitHub Token locally using the Windows DPAPI (Data Protection API). You only need to log in once!
+### 🔥 Heatmap View (Default)
+The classic GitHub contribution calendar rendered directly on your desktop with dynamic scaling.
+
+![Heatmap View](screenshots/heatmap_view.png)
+
+### 📈 Line Chart View
+Visualize your coding momentum and growth trends month-by-month.
+
+![Line Chart View](screenshots/linechart_view.png)
+
+### 📊 Bar Chart View
+See your monthly contribution activity as clean, animated bar charts.
+
+![Bar Chart View](screenshots/barchart_view.png)
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Windows 10 or Windows 11
-- .NET Framework 4.8.1
-- Visual Studio (for building from source)
-
-### 🔑 How to get your GitHub API Key (Personal Access Token)
-To fetch your contribution data, the widget needs a GitHub Personal Access Token. Here is how to create one:
-
-1. Go to [GitHub Settings](https://github.com/settings/profile).
-2. Scroll down to the bottom of the left sidebar and click **Developer settings**.
-3. Go to **Personal access tokens** > **Tokens (classic)**.
-4. Click **Generate new token** -> **Generate new token (classic)**.
-5. Give it a descriptive note (e.g., `Desktop Contribution Widget`).
-6. Set an expiration date (or set to *No expiration* if you prefer).
-7. **Select Scopes (Permissions):**
-   - Check `read:user` *(Required to fetch your avatar and basic profile info)*.
-   - Check `repo` *(Optional, but highly recommended if you want the widget to count your contributions inside your **private** repositories)*.
-8. Click **Generate token** at the bottom of the page.
-9. **Copy the generated token.** *(Note: GitHub will only show this token once, so copy it immediately!)*
-
-### Installation & Usage
-1. Clone or download this repository to your local machine.
-2. Open `GitHubContributionWidget.csproj` in Visual Studio.
-3. Build and Run the application.
-4. On the first launch, a sleek login window will appear. Enter your **GitHub Username** and paste your **Personal Access Token**.
-5. Hit login, and your live dashboard will instantly render on your desktop!
+- **Windows 10** or **Windows 11**
+- **.NET Framework 4.8.1**
+- **Visual Studio** (for building from source)
 
 ---
 
-## 🎨 Widget Controls
-- **Drag:** Click and hold anywhere on the empty space of the widget to move it around your screen.
-- **Resize:** Use the bottom right corner grip to resize the widget. The Heatmap will automatically stretch to fully utilize the space.
-- **Lock/Pin:** Click the pin icon in the top right to lock the widget in place so it cannot be accidentally moved.
-- **Three-Dot Menu:** Access additional settings.
-- **Close:** Click the 'X' to close the widget completely.
+## 🔑 How to Get Your GitHub Personal Access Token
+
+The widget needs a GitHub **Personal Access Token (PAT)** to fetch your contribution data. Here's how to create one:
+
+### Step 1: Open GitHub Developer Settings
+1. Log into [github.com](https://github.com) and go to your profile.
+2. Click on **Settings** (bottom of the profile dropdown).
+3. Scroll down the left sidebar and click **Developer settings** (the very last item).
+
+### Step 2: Generate a New Token
+1. Go to **Personal access tokens** → **Tokens (classic)**.
+2. Click **Generate new token** → **Generate new token (classic)**.
+3. Give it a descriptive name like `Desktop Contribution Widget`.
+
+### Step 3: Select Scopes (Permissions)
+
+> **⚠️ IMPORTANT: You MUST select the correct scopes or the widget won't work!**
+
+| Scope | Required? | Why? |
+|---|---|---|
+| `read:user` | ✅ **Required** | Fetches your avatar, profile info, and public contribution data |
+| `repo` | 🟡 **Highly Recommended** | Includes contributions from your **private repositories** in the count |
+
+Without the `repo` scope, your private repository commits, PRs, and issues will **not** appear in the widget — your contribution count will be lower than what you see on your GitHub profile.
+
+### Step 4: Copy Your Token
+- Click **Generate token** at the bottom.
+- **Copy the token immediately!** GitHub will only show it once.
+
+> **💡 Tip:** Store the token somewhere safe (e.g., a password manager). If you lose it, you'll need to generate a new one.
+
+---
+
+## 🔐 Login Process
+
+On the **first launch**, the widget will display a login window:
+
+![Login Screen](screenshots/login_screen.png)
+
+### How to Login:
+1. Enter your **GitHub Username** (e.g., `tauhid09`).
+2. Paste your **Personal Access Token** into the token field.
+3. Click **Login**.
+
+### What Happens After Login:
+- ✅ Your credentials are **encrypted using Windows DPAPI** and saved locally.
+- ✅ The widget **registers itself to launch on Windows startup** automatically.
+- ✅ **You will never need to login again** — even after restarting your PC.
+
+> **🔒 Security Note:** Your token is encrypted with hardware-bound Windows Data Protection API (DPAPI). It is stored at:
+> ```
+> C:\Users\<YourName>\AppData\Local\GitHubContributionWidget\github_credentials.dat
+> ```
+> This file is encrypted with your Windows user account key and cannot be read by other users or apps.
+
+---
+
+## 🎨 Features & Views
+
+The widget supports **4 interactive chart views**, switchable from the View dropdown in the header:
+
+### 🟩 Heatmap (Default View)
+- The classic GitHub contribution calendar grid.
+- Dynamic scaling — expands to fill the widget at any size.
+- Color-coded intensity from **Less** (gray) → **More** (bright green).
+- Shows month labels (Jan–Dec) and day labels (Mon–Sun).
+
+### 📈 Line Chart
+- Monthly aggregation rendered as a smooth trend line.
+- Shows your coding momentum over the selected timeframe.
+- Animated dots at each data point with hover tooltips.
+
+### 📊 Bar Chart
+- Monthly contribution count displayed as vertical bars.
+- Active day counts labeled above each bar.
+- Gradient-filled bars with smooth entrance animations.
+
+### 🥧 Pie Chart
+- Proportional breakdown of your contributions:
+  - **Commits** · **Pull Requests** · **Issues** · **Code Reviews**
+- Animated pie slices with color-coded legends.
+
+---
+
+## ⏱️ Timeframe Filters
+
+Use the segment control in the header to filter your data:
+
+| Button | Time Range |
+|---|---|
+| **1Y** | Full Year (default) |
+| **6M** | Last 6 Months |
+| **3M** | Last 3 Months |
+| **1M** | Last Month |
+
+All chart views dynamically re-render when you switch timeframes.
+
+---
+
+## 📅 Year Selector
+
+The year dropdown dynamically queries GitHub to find every year you've been active. Click the year button (e.g., `2025 ▼`) to browse your full contribution history.
+
+---
+
+## ⚙️ Options Menu
+
+Click the **three-dot menu** (⋯) in the top-right corner to access widget settings:
+
+![Options Menu](screenshots/options_menu.png)
+
+| Option | Description |
+|---|---|
+| **Unlocked (drag enabled)** | Toggle to lock/unlock the widget position. When locked, the widget cannot be accidentally moved. |
+| **Launch at startup** | When enabled (green checkmark), the widget auto-launches every time you log into Windows. |
+| **Refresh contributions** | Manually re-fetches the latest data from GitHub. |
+| **Log out** | Deletes saved credentials and restarts the app. You'll need to login again. |
+| **Close widget** | The **only way** to close the widget. It ignores the Windows "Show Desktop" gesture to stay visible. |
+
+---
+
+## 🏗️ Installation
+
+### Option 1: Build from Source
+```bash
+git clone https://github.com/tauhid09/GitHubContributionWidget.git
+cd GitHubContributionWidget
+```
+1. Open `GitHubContributionWidget.csproj` in **Visual Studio**.
+2. Build → Run (F5).
+3. Login with your credentials on the first launch.
+
+### Option 2: Download Release
+Download the latest `.exe` from the [Releases](https://github.com/tauhid09/GitHubContributionWidget/releases) page and run it directly.
 
 ---
 
 ## 🛠️ Tech Stack
-- **C# / WPF** (Windows Presentation Foundation)
-- **GitHub GraphQL API** (for fetching high-performance, single-query contribution data)
-- **Newtonsoft.Json / System.Linq** (for parsing nested JSON API responses)
-- **System.Security.Cryptography** (for secure, hardware-bound credential storage)
+
+| Technology | Purpose |
+|---|---|
+| **C# / WPF** | Desktop UI framework with custom canvas rendering |
+| **GitHub GraphQL API** | Single-query, high-performance contribution data fetching |
+| **Windows DPAPI** | Hardware-bound encryption for secure credential storage |
+| **Windows Registry** | Startup registration and window position persistence |
+| **Newtonsoft.Json** | JSON parsing for GitHub API responses |
+
+---
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome! Feel free to open an issue or submit a pull request.
+
+---
+
+## 📜 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+<p align="center">
+  Made with ❤️ by <a href="https://github.com/tauhid09">tauhid09</a>
+</p>
