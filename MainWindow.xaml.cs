@@ -474,6 +474,13 @@ namespace GitHubContributionWidget
                 {
                     _currentView = viewName;
                     CurrentViewText.Text = viewName;
+
+                    // Swap the button icon to match the selected view
+                    BtnIconHeatmap.Visibility   = viewName == "Heatmap"     ? Visibility.Visible : Visibility.Collapsed;
+                    BtnIconLineChart.Visibility = viewName == "Line Chart"  ? Visibility.Visible : Visibility.Collapsed;
+                    BtnIconBarChart.Visibility  = viewName == "Bar Chart"   ? Visibility.Visible : Visibility.Collapsed;
+                    BtnIconPieChart.Visibility  = viewName == "Pie Chart"   ? Visibility.Visible : Visibility.Collapsed;
+
                     SaveViewPreference();
 
                     if (_lastData != null && _lastData.Days.Count > 0)

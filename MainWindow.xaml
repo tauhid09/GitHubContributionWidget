@@ -15,6 +15,7 @@
         WindowStartupLocation="Manual"
         Loaded="Window_Loaded"
         LocationChanged="Window_LocationChanged"
+        Icon="GitHubContributionWidgetsIcon.ico"
         Closing="Window_Closing">
 
   <Window.Resources>
@@ -341,8 +342,36 @@
              <Button x:Name="ViewSelectorBtn" Padding="12,6" Background="#21262D" Foreground="#C9D1D9" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" Click="ViewSelectorBtn_Click">
                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                 <!-- Simple graph icon path -->
-                 <Path Data="M1 11 L5 7 L8 10 L14 4 M14 4 L14 8 M14 4 L10 4" Stroke="#58A6FF" StrokeThickness="1.5" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" VerticalAlignment="Center" Margin="0,0,8,0" Width="15" Height="15"/>
+
+                 <!-- Heatmap icon (default visible) -->
+                 <Canvas x:Name="BtnIconHeatmap" Width="14" Height="14" Margin="0,0,8,0" VerticalAlignment="Center" Visibility="Visible">
+                   <Rectangle Canvas.Left="0" Canvas.Top="0" Width="5" Height="5" Fill="#39D353" RadiusX="1" RadiusY="1"/>
+                   <Rectangle Canvas.Left="0" Canvas.Top="7" Width="5" Height="5" Fill="#006D32" RadiusX="1" RadiusY="1"/>
+                   <Rectangle Canvas.Left="7" Canvas.Top="0" Width="5" Height="5" Fill="#26A641" RadiusX="1" RadiusY="1"/>
+                   <Rectangle Canvas.Left="7" Canvas.Top="7" Width="5" Height="5" Fill="#39D353" RadiusX="1" RadiusY="1"/>
+                 </Canvas>
+
+                 <!-- Line Chart icon -->
+                 <Path x:Name="BtnIconLineChart" Data="M1,10 L4,6 L7,8 L11,3 L14,5" Stroke="#58A6FF" StrokeThickness="1.5"
+                       StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                       Width="14" Height="12" Stretch="Fill" Margin="0,0,8,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+
+                 <!-- Bar Chart icon -->
+                 <Canvas x:Name="BtnIconBarChart" Width="15" Height="12" Margin="0,0,8,0" VerticalAlignment="Center" Visibility="Collapsed">
+                   <Rectangle Canvas.Left="0"  Canvas.Top="6"  Width="3" Height="6"  Fill="#58A6FF" RadiusX="1" RadiusY="1"/>
+                   <Rectangle Canvas.Left="4"  Canvas.Top="2"  Width="3" Height="10" Fill="#58A6FF" RadiusX="1" RadiusY="1"/>
+                   <Rectangle Canvas.Left="8"  Canvas.Top="4"  Width="3" Height="8"  Fill="#58A6FF" RadiusX="1" RadiusY="1"/>
+                   <Rectangle Canvas.Left="12" Canvas.Top="0"  Width="3" Height="12" Fill="#58A6FF" RadiusX="1" RadiusY="1"/>
+                 </Canvas>
+
+                 <!-- Pie Chart icon -->
+                 <Viewbox x:Name="BtnIconPieChart" Width="14" Height="14" Margin="0,0,8,0" VerticalAlignment="Center" Visibility="Collapsed">
+                   <Canvas Width="14" Height="14">
+                     <Ellipse Width="12" Height="12" Canvas.Left="1" Canvas.Top="1" Stroke="#A371F7" StrokeThickness="1.5" Fill="Transparent"/>
+                     <Path Data="M7,7 L7,1 A6,6,0,0,1,12.2,9.5 Z" Fill="#A371F7" Canvas.Left="0" Canvas.Top="0"/>
+                   </Canvas>
+                 </Viewbox>
+
                  <TextBlock x:Name="CurrentViewText" Text="Heatmap" FontWeight="SemiBold" FontSize="12"/>
                  <TextBlock Text="▼" FontSize="8" Margin="8,2,0,0" Foreground="#80FFFFFF"/>
                </StackPanel>
@@ -351,17 +380,50 @@
              <Popup x:Name="ViewPopup" PlacementTarget="{Binding ElementName=ViewSelectorBtn}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True">
                <Border Background="#1C2128" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="0,4" Margin="0,4,0,0" MinWidth="120">
                  <StackPanel>
+                   <!-- Heatmap: grid of small squares -->
                    <Button Style="{StaticResource MenuItemStyle}" Tag="Heatmap" Click="ViewOption_Click">
-                     <TextBlock Text="Heatmap" FontWeight="SemiBold"/>
+                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                       <Canvas Width="14" Height="14" Margin="0,0,8,0">
+                         <Rectangle Canvas.Left="0" Canvas.Top="0"  Width="5" Height="5" Fill="#39D353" RadiusX="1" RadiusY="1"/>
+                         <Rectangle Canvas.Left="0" Canvas.Top="7"  Width="5" Height="5" Fill="#006D32" RadiusX="1" RadiusY="1"/>
+                         <Rectangle Canvas.Left="7" Canvas.Top="0"  Width="5" Height="5" Fill="#26A641" RadiusX="1" RadiusY="1"/>
+                         <Rectangle Canvas.Left="7" Canvas.Top="7"  Width="5" Height="5" Fill="#39D353" RadiusX="1" RadiusY="1"/>
+                       </Canvas>
+                       <TextBlock Text="Heatmap" FontWeight="SemiBold"/>
+                     </StackPanel>
                    </Button>
+                   <!-- Line Chart: polyline trend icon -->
                    <Button Style="{StaticResource MenuItemStyle}" Tag="Line Chart" Click="ViewOption_Click">
-                     <TextBlock Text="Line Chart" FontWeight="SemiBold"/>
+                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                       <Path Data="M1,10 L4,6 L7,8 L11,3 L14,5" Stroke="#58A6FF" StrokeThickness="1.5"
+                             StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                             Width="14" Height="12" Stretch="Fill" Margin="0,0,8,0"/>
+                       <TextBlock Text="Line Chart" FontWeight="SemiBold"/>
+                     </StackPanel>
                    </Button>
+                   <!-- Bar Chart: vertical bars icon -->
                    <Button Style="{StaticResource MenuItemStyle}" Tag="Bar Chart" Click="ViewOption_Click">
-                     <TextBlock Text="Bar Chart" FontWeight="SemiBold"/>
+                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                       <Canvas Width="14" Height="12" Margin="0,0,8,0">
+                         <Rectangle Canvas.Left="0"  Canvas.Top="6"  Width="3" Height="6" Fill="#58A6FF" RadiusX="1" RadiusY="1"/>
+                         <Rectangle Canvas.Left="4"  Canvas.Top="2"  Width="3" Height="10" Fill="#58A6FF" RadiusX="1" RadiusY="1"/>
+                         <Rectangle Canvas.Left="8"  Canvas.Top="4"  Width="3" Height="8" Fill="#58A6FF" RadiusX="1" RadiusY="1"/>
+                         <Rectangle Canvas.Left="12" Canvas.Top="0"  Width="3" Height="12" Fill="#58A6FF" RadiusX="1" RadiusY="1"/>
+                       </Canvas>
+                       <TextBlock Text="Bar Chart" FontWeight="SemiBold"/>
+                     </StackPanel>
                    </Button>
+                   <!-- Pie Chart: circle + filled wedge -->
                    <Button Style="{StaticResource MenuItemStyle}" Tag="Pie Chart" Click="ViewOption_Click">
-                     <TextBlock Text="Pie Chart" FontWeight="SemiBold"/>
+                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                       <Viewbox Width="14" Height="14" Margin="0,0,8,0">
+                         <Canvas Width="14" Height="14">
+                           <Ellipse Width="12" Height="12" Canvas.Left="1" Canvas.Top="1" Stroke="#A371F7" StrokeThickness="1.5" Fill="Transparent"/>
+                           <Path Data="M7,7 L7,1 A6,6,0,0,1,12.2,9.5 Z" Fill="#A371F7" Canvas.Left="0" Canvas.Top="0"/>
+                         </Canvas>
+                       </Viewbox>
+                       <TextBlock Text="Pie Chart" FontWeight="SemiBold"/>
+                     </StackPanel>
                    </Button>
                  </StackPanel>
                </Border>
