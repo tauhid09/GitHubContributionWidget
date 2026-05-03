@@ -45,6 +45,47 @@ namespace GitHubContributionWidget
         [DllImport("user32.dll")]
         private static extern int SetWindowLong(IntPtr hwnd, int index, int newStyle);
 
+        // Win32 interop — keep widget always BEHIND other windows
+        private static readonly IntPtr HWND_BOTTOM = new IntPtr(1);
+        private const uint SWP_NOSIZE     = 0x0001;
+        private const uint SWP_NOMOVE     = 0x0002;
+        private const uint SWP_NOACTIVATE = 0x0010;
+        private const int  WM_WINDOWPOSCHANGING = 0x0046;
+
+        [DllImport("user32.dll")]
+        private static extern bool SetWindowPos(IntPtr hwnd, IntPtr hwndInsertAfter,
+            int x, int y, int cx, int cy, uint flags);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct WINDOWPOS
+        {
+            public IntPtr hwnd;
+            public IntPtr hwndInsertAfter;
+            public int x, y, cx, cy;
+            public uint flags;
+        }
+
+        // Temporarily allows z-order changes during virtual desktop switches
+        private bool _isMovingDesktop = false;
+
+        // ── Virtual Desktop COM API (documented) ─────────────────────
+        // Detects when the user switches desktops and moves the widget
+        // to the current desktop WITHOUT keeping it permanently on top.
+        [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown),
+         Guid("a5cd92ff-29be-454c-8d04-d82879fb3f1b")]
+        private interface IVirtualDesktopManager
+        {
+            [PreserveSig] int IsWindowOnCurrentVirtualDesktop(IntPtr hwnd, out bool isOnCurrentDesktop);
+            [PreserveSig] int GetWindowDesktopId(IntPtr hwnd, out Guid desktopId);
+            [PreserveSig] int MoveWindowToDesktop(IntPtr hwnd, ref Guid desktopId);
+        }
+
+        [ComImport, Guid("aa509086-5ca9-4c25-8f95-589d3c07b48a")]
+        private class VirtualDesktopManagerCom { }
+
+        private IVirtualDesktopManager _vdManager;
+        private System.Windows.Threading.DispatcherTimer _desktopTimer;
+
         // Y-axis tick values the user requested
         private static readonly int[] YTicks = { 0, 5, 10, 15, 20, 25, 31 };
         private const int YMax = 31; // max active days in any month
@@ -77,26 +118,91 @@ namespace GitHubContributionWidget
         }
 
         // ---------------------------------------------------------------
-        // True widget behavior — hide from Alt+Tab + block minimize
+        // True widget behavior — hide from Alt+Tab + appear on ALL virtual desktops
         // ---------------------------------------------------------------
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
             var hwnd = new WindowInteropHelper(this).Handle;
 
-            // Hide from Alt+Tab by applying WS_EX_TOOLWINDOW extended style
+            // Hide from Alt+Tab
             int exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
             SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TOOLWINDOW);
 
-            // Hook WndProc to block SC_MINIMIZE (Win+D, Show Desktop, etc.)
+            // Hook WndProc to block SC_MINIMIZE and force bottom z-order
             var source = HwndSource.FromHwnd(hwnd);
             source?.AddHook(WndProc);
+
+            // Send widget to the BOTTOM of the z-order (behind all windows)
+            SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
+            // Start virtual desktop monitor
+            InitVirtualDesktopFollower();
+        }
+
+        /// <summary>
+        /// Initialises the IVirtualDesktopManager COM object and a timer that
+        /// checks every 500 ms whether the widget is still on the active
+        /// virtual desktop.  When it detects the user has switched away, it
+        /// briefly toggles Topmost on → off which makes Windows move the
+        /// window to the current desktop while keeping it non-topmost.
+        /// </summary>
+        private void InitVirtualDesktopFollower()
+        {
+            try
+            {
+                _vdManager = (IVirtualDesktopManager)new VirtualDesktopManagerCom();
+            }
+            catch { return; } // COM unavailable — no virtual desktop support
+
+            _desktopTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(500)
+            };
+            _desktopTimer.Tick += DesktopFollower_Tick;
+            _desktopTimer.Start();
+        }
+
+        private void DesktopFollower_Tick(object sender, EventArgs e)
+        {
+            if (_vdManager == null) return;
+            try
+            {
+                var hwnd = new WindowInteropHelper(this).Handle;
+                if (hwnd == IntPtr.Zero) return;
+
+                int hr = _vdManager.IsWindowOnCurrentVirtualDesktop(hwnd, out bool isOnCurrent);
+                if (hr == 0 && !isOnCurrent)
+                {
+                    // Temporarily allow z-order changes so the Topmost toggle works
+                    _isMovingDesktop = true;
+                    this.Topmost = true;
+                    this.Topmost = false;
+                    // Send back to the bottom after moving to current desktop
+                    SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0,
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                    _isMovingDesktop = false;
+                }
+            }
+            catch { }
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
+            // Block minimize (Win+D, Show Desktop, etc.)
             if (msg == WM_SYSCOMMAND && (wParam.ToInt32() & 0xFFF0) == SC_MINIMIZE)
                 handled = true;
+
+            // Force the widget to stay at the BOTTOM of the z-order
+            // so it is always behind every other window (true desktop widget).
+            if (msg == WM_WINDOWPOSCHANGING && !_isMovingDesktop)
+            {
+                var pos = (WINDOWPOS)Marshal.PtrToStructure(lParam, typeof(WINDOWPOS));
+                pos.hwndInsertAfter = HWND_BOTTOM;
+                Marshal.StructureToPtr(pos, lParam, false);
+            }
+
             return IntPtr.Zero;
         }
 
